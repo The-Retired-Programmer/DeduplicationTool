@@ -28,6 +28,7 @@ public class Commands {
 
     public Commands() {
         Command quit = new QuitCommand();
+        map.put("q", quit);
         map.put("quit", quit);
         map.put("end", quit);
         map.put("exit", quit);
@@ -36,7 +37,6 @@ public class Commands {
         map.put("newmodel", new NewModel());
         map.put("loadsignatures", new LoadSignatures());
         map.put("extractsignatures", new ExtractSignatures());
-        map.put("find", new FindDuplicates());
         map.put("echo", new EchoCommand());
         map.put("set", new SetCommand());
         map.put("match", new Matching());
@@ -56,33 +56,31 @@ public class Commands {
         @Override
         public ActionResult execute() throws IOException {
             checkTokenCount(1);
-            System.out.println("? - list commands");
-            System.out.println("quit | exit | end  - exit program");
-            System.out.println("export as <filename> - dump the results to filename");
+            System.out.println("export matches as <filename> - export the match results to filename");
             System.out.println("newmodel <modelname> - save the current model and open a new model");
             System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
             System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
-            System.out.println("find duplicates using [digests|filenames]");
-            System.out.println("match duplicates using [filepaths]");
-            System.out.println("echo ALL - display all parameter values");
+            System.out.println("match duplicates using [filepath|digest|filename]");
+            System.out.println("echo - display all parameter values");
             System.out.println("echo <parameter> - display parameter value");
             System.out.println("set <parameter> <value> - define a parameter and set its value");
+            System.out.println("? - list commands");
+            System.out.println("quit | q | exit | end  - exit program");
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
-
 
     private class EchoCommand extends Command {
 
         @Override
         public ActionResult execute() throws IOException {
-            checkTokenCount(2);
-            String name = checkSyntaxAndNAME("echo");
-            if (name.equalsIgnoreCase("all")) {
+            int l = checkTokenCount(1, 2);
+            if (l == 1) {
                 for (Entry<String, String> e : parameters.getAll()) {
                     System.out.println(e.getKey() + " = " + e.getValue());
                 }
             } else {
+                String name = checkSyntaxAndNAME("echo");
                 System.out.println(name + " = " + parameters.get(name));
             }
             return ActionResult.COMPLETEDCONTINUE;

@@ -17,14 +17,22 @@ package uk.theretiredprogrammer.deduplicatetool.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
+import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
 
 public class Export extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(3);
-        File path = checkSyntaxAndFILEPATH("export", "as");
-        // implement this 
+        checkTokenCount(4);
+        File path = checkSyntaxAndFILEPATH("export", "matches", "as");
+        try (PrintWriter wtr = FileManager.openWriter(path)){
+            for (MatchRecord mr: model.getAllMatchRecords()){
+                wtr.println(mr.toString());
+            }
+        }
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
 }

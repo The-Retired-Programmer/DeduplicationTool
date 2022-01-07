@@ -99,4 +99,14 @@ public class FileManager {
             throw new IOException("Model datafile missing: " + modelname);
         }
     }
+    
+    public static PrintWriter openWriter(File datapath) throws IOException {
+        if (datapath.createNewFile()) {
+            Writer fw = new FileWriter(datapath);
+            BufferedWriter bw = new BufferedWriter(fw);
+            return new PrintWriter(bw);
+        } else {
+            throw new IOException("Could not create export datafile for " + datapath.getCanonicalPath());
+        }
+    }
 }

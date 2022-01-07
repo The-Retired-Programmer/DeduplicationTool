@@ -21,7 +21,15 @@ import java.util.List;
 public class MatchRecord {
     
     public static enum MatchType {
-        PATH
+        PATH("filepath"),
+        DIGEST("digest"),
+        FILENAME("filename");
+        
+        public final String description;
+        
+        private MatchType(String description) {
+            this.description = description;
+        }
     }
     
     private static int nextid = 1;
@@ -38,5 +46,16 @@ public class MatchRecord {
     
     public void add(FileRecord fileRecord) {
         fileRecords.add(fileRecord);
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (var fr: fileRecords) {
+            sb.append(id);sb.append('§');sb.append(matchtype.description); sb.append('§');
+            sb.append(fr.toString());
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 }

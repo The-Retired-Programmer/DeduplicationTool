@@ -35,6 +35,7 @@ public class CommandProcessor {
         parameters = new Parameters();
         parameters.set("iCLOUD", "/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/");
         parameters.set("USER", "/Users/richard/");
+        parameters.set("MODEL", "/Users/richard/DeduplicateTool-Data/"+modelname+"/");
         this.commands = new Commands();
         this.model = new Model(modelname, parameters);
         // and process the config file (optional)

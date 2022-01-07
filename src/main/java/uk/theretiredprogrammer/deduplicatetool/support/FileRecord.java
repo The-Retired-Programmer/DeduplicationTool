@@ -47,6 +47,18 @@ public class FileRecord {
         }
     }
     
+    public String getFilepath() {
+        return path;
+    }
+    
+    public String getDigest() {
+        return digest;
+    }
+    
+    public String getFilename() {
+        return filename;
+    }
+    
     public String toPrintString() {
         return path+"\n"+ Integer.toString(filesize) + "; " + digest;
     }

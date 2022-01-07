@@ -16,7 +16,7 @@
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
@@ -29,74 +29,57 @@ public class Matching extends Command {
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(4);
         checkSyntax("match", "duplicates", "using");
-        String option = checkOptionsSyntax("filepath");
+        String option = checkOptionsSyntax("filepath","digest","filename");
         switch (option) {
             case "filepath" -> {
-                filepath();
+                extractMatches(MatchType.PATH, 
+                        Comparator.comparing(FileRecord::getFilepath)//.thenComparing(...)
+                        );
+            }
+            case "digest" -> {
+                extractMatches(MatchType.DIGEST, 
+                        Comparator.comparing(FileRecord::getDigest)//.thenComparing(...)
+                        );
+            }
+            case "filename" -> {
+                extractMatches(MatchType.FILENAME, 
+                        Comparator.comparing(FileRecord::getFilename)//.thenComparing(...)
+                        );
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
-
-    private void filepath() {
-        List<List<FileRecord>> dups;
-        model.sortbydigest();
-        System.out.println("CHECKING FOR DUPLICATE FILEPATHS");
-        dups = extractallduplicatepaths();
-        System.out.println("NUMBER OF DUPLICATES: " + dups.size());
-        System.out.println("NUMBER OF DUPLICATE FILES: " + getflatsize(dups));
-        //bld.dump(dups, "duplicate-digests");
-        System.out.println("NUMBER OF MATCHES: "+ model.getAllMatchRecords().size());
-    }
+    
 
     @SuppressWarnings("null")
-    public List<List<FileRecord>> extractallduplicatepaths() {
-        List<List<FileRecord>> allduplicates = new ArrayList<>();
+    private void extractMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
         List<FileRecord> allrecords = model.getAllFileRecords();
+        allrecords.sort(comparefilerecords);
         if (allrecords.size() > 1) {
             ListIterator<FileRecord> iterator = allrecords.listIterator();
             FileRecord current = iterator.next();
             boolean induplicateset = false;
-            List<FileRecord> duplicates = null;
             MatchRecord rec = null;
             while (iterator.hasNext()) {
                 FileRecord possibleduplicate = iterator.next();
-                if (current.path.equals(possibleduplicate.path)) {
+                if (comparefilerecords.compare(current, possibleduplicate) == 0) {
+                //if (current.path.equals(possibleduplicate.path)) {
                     if (induplicateset) {
-                        duplicates.add(possibleduplicate);
                         rec.add(possibleduplicate);
-                        System.out.println(possibleduplicate.toString());
                     } else {
-                        duplicates = new ArrayList<>();
-                        duplicates.add(current);
-                        duplicates.add(possibleduplicate);
-                        //
-                        rec = new MatchRecord(MatchType.PATH, current);
+                        rec = new MatchRecord(matchtype, current);
                         rec.add(possibleduplicate);
-                        //
-                        System.out.println("DUPLICATE");
-                        System.out.println(current.toString());
-                        System.out.println(possibleduplicate.toString());
                         induplicateset = true;
                     }
                 } else {
                     if (induplicateset) {
                         induplicateset = false;
-                        allduplicates.add(duplicates);
                         model.add(rec);
                     }
                     current = possibleduplicate;
                 }
             }
         }
-        return allduplicates;
-    }
-
-    private static int getflatsize(List<List<FileRecord>> dups) {
-        int flatsize = 0;
-        for (var list : dups) {
-            flatsize += list.size();
-        }
-        return flatsize;
+        System.out.println("MATCHES: type="+matchtype.description+", number="+ model.getAllMatchRecords().size());
     }
 }

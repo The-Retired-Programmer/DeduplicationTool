@@ -52,6 +52,16 @@ public abstract class Command {
             throw new IOException("Command reader failure");
         }
     }
+    
+    protected int checkTokenCount(int... expectedlength) throws IOException {
+        int actuallength = tokens.size();
+        for (int length: expectedlength){
+            if ( actuallength == length) {
+                return length;
+            }
+        }
+        throw new IOException("Bad command syntax - incorrect number of parameters");
+    }
 
     protected void checkTokenCount(int expectedlength) throws IOException {
         if (tokens.size() != expectedlength) {
