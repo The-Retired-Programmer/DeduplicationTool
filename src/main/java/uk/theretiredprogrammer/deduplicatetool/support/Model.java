@@ -27,6 +27,7 @@ public class Model {
 
     private final String modelname;
     private final List<FileRecord> allrecords = new ArrayList<>();
+    private final List<MatchRecord> allmatches = new ArrayList<>();
 
     public Model(String modelname, Parameters parameters) throws IOException {
         this.modelname = modelname;
@@ -37,6 +38,14 @@ public class Model {
                 line = rdr.readLine();
             }
         }
+    }
+    
+    public List<FileRecord> getAllFileRecords() {
+        return allrecords;
+    }
+    
+    public List<MatchRecord> getAllMatchRecords() {
+        return allmatches;
     }
     
     public void save(Parameters parameters) throws IOException {
@@ -50,6 +59,10 @@ public class Model {
     public void add(FileRecord fr) {
         allrecords.add(fr);
     }
+    
+    public void add(MatchRecord mr) {
+        allmatches.add(mr);
+    }
 
     public void sortbydigest() {
         Collections.sort(allrecords, (fr1, fr2) -> fr1.digest.compareTo(fr2.digest));
@@ -57,6 +70,10 @@ public class Model {
 
     public void sortbyfilename() {
         Collections.sort(allrecords, (fr1, fr2) -> fr1.filename.compareTo(fr2.filename));
+    }
+    
+    public void sortbypath() {
+        Collections.sort(allrecords, (fr1, fr2) -> fr1.path.compareTo(fr2.path));
     }
 
     @SuppressWarnings("null")

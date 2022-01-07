@@ -43,7 +43,7 @@ public class FindDuplicates extends Command {
         System.out.println("CHECKING FOR DUPLICATE DIGESTS");
         dups = model.extractallduplicatedigests();
         System.out.println("NUMBER OF DUPLICATES: " + dups.size());
-        System.out.println("NUMBER 1OF DUPLICATE FILES: " + getflatsize(dups));
+        System.out.println("NUMBER OF DUPLICATE FILES: " + getflatsize(dups));
         //bld.dump(dups, "duplicate-digests");
     }
 

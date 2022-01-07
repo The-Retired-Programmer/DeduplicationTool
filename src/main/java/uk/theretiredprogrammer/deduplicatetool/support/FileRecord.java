@@ -20,12 +20,13 @@ import java.io.IOException;
 
 public class FileRecord {
     
-    public final String tag;
-    public final String path;
+    public final String tag; 
+    public final String path; 
     public final String filename;
     public final String filenameext;
     public final String digest;
     public final int filesize;
+    
     
     public FileRecord(String serialisedrecord) throws IOException {
         String[] serialisedrecordparts = serialisedrecord.split("§");

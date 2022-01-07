@@ -39,6 +39,7 @@ public class Commands {
         map.put("find", new FindDuplicates());
         map.put("echo", new EchoCommand());
         map.put("set", new SetCommand());
+        map.put("match", new Matching());
     }
 
     private class QuitCommand extends Command {
@@ -62,6 +63,7 @@ public class Commands {
             System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
             System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
             System.out.println("find duplicates using [digests|filenames]");
+            System.out.println("match duplicates using [filepaths]");
             System.out.println("echo ALL - display all parameter values");
             System.out.println("echo <parameter> - display parameter value");
             System.out.println("set <parameter> <value> - define a parameter and set its value");
