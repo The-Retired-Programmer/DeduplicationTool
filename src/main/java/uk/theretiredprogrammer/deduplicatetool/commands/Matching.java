@@ -21,38 +21,58 @@ import java.util.List;
 import java.util.ListIterator;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord.MatchType;
 
 public class Matching extends Command {
 
+    public static enum MatchType {
+        PATH("filepath"),
+        DIGEST("digest"),
+        FILENAME("filename");
+
+        public final String description;
+
+        private MatchType(String description) {
+            this.description = description;
+        }
+    }
+
+    private void findMatchesUsingFilepath() {
+        findMatches(MatchType.PATH, Comparator.comparing(FileRecord::getFilepath));
+    }
+
+    private void findMatchesUsingDigest() {
+        findMatches(MatchType.DIGEST, Comparator.comparing(FileRecord::getDigest));
+    }
+
+    private void findMatchesUsingFilename() {
+        findMatches(MatchType.FILENAME, Comparator.comparing(FileRecord::getFilename));//.thenComparing(...)
+    }
+
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(4);
-        checkSyntax("match", "duplicates", "using");
-        String option = checkOptionsSyntax("filepath","digest","filename");
-        switch (option) {
-            case "filepath" -> {
-                extractMatches(MatchType.PATH, 
-                        Comparator.comparing(FileRecord::getFilepath)//.thenComparing(...)
-                        );
-            }
-            case "digest" -> {
-                extractMatches(MatchType.DIGEST, 
-                        Comparator.comparing(FileRecord::getDigest)//.thenComparing(...)
-                        );
-            }
-            case "filename" -> {
-                extractMatches(MatchType.FILENAME, 
-                        Comparator.comparing(FileRecord::getFilename)//.thenComparing(...)
-                        );
+        int l = checkTokenCount(1, 4);
+        if (l == 1) {
+
+        } else {
+            checkSyntax("match", "duplicates", "using");
+            String option = checkOptionsSyntax("filepath", "digest", "filename");
+            switch (option) {
+                case "filepath" -> {
+                    findMatchesUsingFilepath();
+                }
+                case "digest" -> {
+                    findMatchesUsingDigest();
+                }
+                case "filename" -> {
+                    findMatchesUsingFilename();
+                }
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
-    
 
     @SuppressWarnings("null")
-    private void extractMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
+    private void findMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
         List<FileRecord> allrecords = model.getAllFileRecords();
         allrecords.sort(comparefilerecords);
         if (allrecords.size() > 1) {
@@ -63,7 +83,7 @@ public class Matching extends Command {
             while (iterator.hasNext()) {
                 FileRecord possibleduplicate = iterator.next();
                 if (comparefilerecords.compare(current, possibleduplicate) == 0) {
-                //if (current.path.equals(possibleduplicate.path)) {
+                    //if (current.path.equals(possibleduplicate.path)) {
                     if (induplicateset) {
                         rec.add(possibleduplicate);
                     } else {
@@ -80,6 +100,6 @@ public class Matching extends Command {
                 }
             }
         }
-        System.out.println("MATCHES: type="+matchtype.description+", number="+ model.getAllMatchRecords().size());
+        System.out.println("MATCHES: type=" + matchtype.description + ", number=" + model.getAllMatchRecords().size());
     }
 }

@@ -17,42 +17,34 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 
 import java.util.ArrayList;
 import java.util.List;
+import uk.theretiredprogrammer.deduplicatetool.commands.Matching.MatchType;
 
 public class MatchRecord {
-    
-    public static enum MatchType {
-        PATH("filepath"),
-        DIGEST("digest"),
-        FILENAME("filename");
-        
-        public final String description;
-        
-        private MatchType(String description) {
-            this.description = description;
-        }
-    }
-    
+
     private static int nextid = 1;
-    
+
     public final int id;
     public final MatchType matchtype;
     public final List<FileRecord> fileRecords = new ArrayList<>();
-    
+
     public MatchRecord(MatchType matchtype, FileRecord fileRecord) {
         id = nextid++;
         this.matchtype = matchtype;
         fileRecords.add(fileRecord);
     }
-    
+
     public void add(FileRecord fileRecord) {
         fileRecords.add(fileRecord);
     }
-    
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (var fr: fileRecords) {
-            sb.append(id);sb.append('§');sb.append(matchtype.description); sb.append('§');
+        for (var fr : fileRecords) {
+            sb.append(id);
+            sb.append('§');
+            sb.append(matchtype.description);
+            sb.append('§');
             sb.append(fr.toString());
             sb.append('\n');
         }
