@@ -27,13 +27,19 @@ public class Matching extends Command {
     public static enum MatchType {
         PATH("filepath"),
         DIGEST("digest"),
-        FILENAME("filename");
+        FILENAME("filename"),
+        PATH_DIGEST_SIZE("filepath,digest,filesize"),
+        DIGEST_SIZE("digest,filesize");
 
         public final String description;
 
         private MatchType(String description) {
             this.description = description;
         }
+    }
+
+    private void findMatchesUsingFilePath_Digest_Filesize() {
+        findMatches(MatchType.PATH_DIGEST_SIZE, Comparator.comparing(FileRecord::getFilepath).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
     }
 
     private void findMatchesUsingFilepath() {
@@ -43,19 +49,27 @@ public class Matching extends Command {
     private void findMatchesUsingDigest() {
         findMatches(MatchType.DIGEST, Comparator.comparing(FileRecord::getDigest));
     }
+    
+    private void findMatchesUsingDigest_Filesize() {
+        findMatches(MatchType.DIGEST_SIZE, Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
+    }
 
     private void findMatchesUsingFilename() {
-        findMatches(MatchType.FILENAME, Comparator.comparing(FileRecord::getFilename));//.thenComparing(...)
+        findMatches(MatchType.FILENAME, Comparator.comparing(FileRecord::getFilename));
     }
 
     @Override
     public Command.ActionResult execute() throws IOException {
         int l = checkTokenCount(1, 4);
         if (l == 1) {
-
+            findMatchesUsingFilePath_Digest_Filesize();
+            findMatchesUsingFilepath();
+            findMatchesUsingDigest();
+            findMatchesUsingDigest_Filesize();
+            findMatchesUsingFilename();
         } else {
             checkSyntax("match", "duplicates", "using");
-            String option = checkOptionsSyntax("filepath", "digest", "filename");
+            String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize","digest-filesize");
             switch (option) {
                 case "filepath" -> {
                     findMatchesUsingFilepath();
@@ -65,6 +79,12 @@ public class Matching extends Command {
                 }
                 case "filename" -> {
                     findMatchesUsingFilename();
+                }
+                case "filepath-digest-filesize" -> {
+                    findMatchesUsingFilePath_Digest_Filesize();
+                }
+                case "digest-filesize" -> {
+                    findMatchesUsingDigest_Filesize();
                 }
             }
         }

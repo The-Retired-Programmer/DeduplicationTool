@@ -20,30 +20,40 @@ import java.io.IOException;
 
 public class FileRecord {
     
+    public static enum FileStatus {
+        NONE, DUPLICATE_IGNORE, TO_BE_DELETED, FILE_DELETED, DUPLICATE_CANDIDATE
+    }
+    
     public final String tag; 
-    public final String path; 
+    public final String path;
+    public final String parentpath;
     public final String filename;
     public final String filenameext;
     public final String digest;
     public final int filesize;
-    
+    public FileStatus filestatus;
     
     public FileRecord(String serialisedrecord) throws IOException {
         String[] serialisedrecordparts = serialisedrecord.split("§");
-        if (serialisedrecordparts.length != 4 ) {
-            throw new IOException("Badly formatted data source: "+serialisedrecord);
-        }
-        tag = serialisedrecordparts[0];
-        path = serialisedrecordparts[1];
-        digest = serialisedrecordparts[2];
-        filesize = Integer.parseInt(serialisedrecordparts[3]);
-        File f = new File(path);
-        filenameext = f.getName();
-        int dotindex = filenameext.indexOf(".");
-        if (dotindex == -1) {
-            filename = filenameext;
+        if ((serialisedrecordparts.length == 4) || (serialisedrecordparts.length == 5)) {
+            // common for old and new formats
+            tag = serialisedrecordparts[0];
+            path = serialisedrecordparts[1];
+            digest = serialisedrecordparts[2];
+            filesize = Integer.parseInt(serialisedrecordparts[3]);
+            File f = new File(path);
+            filenameext = f.getName();
+            int dotindex = filenameext.indexOf(".");
+            if (dotindex == -1) {
+                filename = filenameext;
+            } else {
+                filename = filenameext.substring(0, dotindex);
+            }
+            parentpath = f.getParent();
+            // handle this differently for various file versions
+            filestatus = serialisedrecordparts.length == 5 ? FileStatus.valueOf(serialisedrecordparts[4]) : FileStatus.NONE;
         } else {
-            filename = filenameext.substring(0, dotindex);
+            throw new IOException("Badly formatted data source: " + serialisedrecord);
         }
     }
     
@@ -59,12 +69,16 @@ public class FileRecord {
         return filename;
     }
     
+    public int getFilesize() {
+        return filesize;
+    }
+    
     public String toPrintString() {
         return path+"\n"+ Integer.toString(filesize) + "; " + digest;
     }
     
     @Override
     public String toString() {
-        return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize);
+        return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize)+"§"+filestatus;
     }
 }
