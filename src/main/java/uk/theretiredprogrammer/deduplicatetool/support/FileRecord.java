@@ -21,7 +21,17 @@ import java.io.IOException;
 public class FileRecord {
     
     public static enum FileStatus {
-        NONE, DUPLICATE_IGNORE, TO_BE_DELETED, FILE_DELETED, DUPLICATE_CANDIDATE
+        NONE(true), DUPLICATE_IGNORE(false), TO_BE_DELETED(false), FILE_DELETED(false), DUPLICATE_CANDIDATE(false);
+        
+        public final boolean processable;
+
+        private FileStatus(boolean processable) {
+            this.processable = processable;
+        }
+        
+        public boolean isProcessable() {
+            return processable;
+        }
     }
     
     public final String tag; 
@@ -73,8 +83,8 @@ public class FileRecord {
         return filesize;
     }
     
-    public String toPrintString() {
-        return path+"\n"+ Integer.toString(filesize) + "; " + digest;
+    public FileStatus getFileStatus() {
+        return filestatus;
     }
     
     @Override

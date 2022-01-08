@@ -102,7 +102,7 @@ public class Matching extends Command {
 
     @SuppressWarnings("null")
     private void findMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
-        List<FileRecord> allrecords = model.getAllFileRecords();
+        List<FileRecord> allrecords = model.getAllProcessableFileRecords();
         allrecords.sort(comparefilerecords);
         if (allrecords.size() > 1) {
             ListIterator<FileRecord> iterator = allrecords.listIterator();

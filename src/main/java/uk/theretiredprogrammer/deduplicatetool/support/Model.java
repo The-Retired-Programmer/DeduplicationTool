@@ -19,15 +19,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Model {
 
     private final String modelname;
     private final List<FileRecord> allrecords = new ArrayList<>();
     private final List<MatchRecord> allmatches = new ArrayList<>();
+    private final Map<String,FolderModel> foldermodels = new HashMap<>();
 
     public Model(String modelname, Parameters parameters) throws IOException {
         this.modelname = modelname;
@@ -40,20 +42,32 @@ public class Model {
         }
     }
     
-    public List<FileRecord> getAllFileRecords() {
-        return allrecords;
-    }
-    
-    public List<MatchRecord> getAllMatchRecords() {
-        return allmatches;
-    }
-    
     public void save(Parameters parameters) throws IOException {
         try (PrintWriter wtr = FileManager.openModelWriter(modelname, parameters)){
             for (FileRecord fr: allrecords){
                 wtr.println(fr.toString());
             }
         }
+    }
+    
+    public List<FileRecord> getAllFileRecords() {
+        return allrecords;
+    }
+    
+    public List<FileRecord> getAllProcessableFileRecords() {
+        return allrecords.stream().filter(fr -> fr.getFileStatus().isProcessable()).collect(Collectors.toList());
+    }
+    
+    public List<MatchRecord> getAllMatchRecords() {
+        return allmatches;
+    }
+    
+    public FolderModel getFolderModel(String key) throws IOException{
+        FolderModel fm = foldermodels.get(key);
+        if (fm == null) {
+            throw new IOException("unknow FolderModel: "+key);
+        }
+        return fm;
     }
 
     public void add(FileRecord fr) {
@@ -62,5 +76,9 @@ public class Model {
     
     public void add(MatchRecord mr) {
         allmatches.add(mr);
+    }
+    
+    public void add(String key, FolderModel fmodel){
+        foldermodels.put(key, fmodel);
     }
 }

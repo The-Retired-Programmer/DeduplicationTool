@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
 
 public class Export extends Command {

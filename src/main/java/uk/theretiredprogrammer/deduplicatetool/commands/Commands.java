@@ -40,6 +40,8 @@ public class Commands {
         map.put("echo", new EchoCommand());
         map.put("set", new SetCommand());
         map.put("match", new Matching());
+        map.put("extract", new Extract());
+        map.put("mark", new Mark());
     }
 
     private class QuitCommand extends Command {
