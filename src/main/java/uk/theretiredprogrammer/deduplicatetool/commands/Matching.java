@@ -29,7 +29,8 @@ public class Matching extends Command {
         DIGEST("digest"),
         FILENAME("filename"),
         PATH_DIGEST_SIZE("filepath,digest,filesize"),
-        DIGEST_SIZE("digest,filesize");
+        DIGEST_SIZE("digest,filesize"),
+        FILENAME_DIGEST_SIZE("filename_digest,filesize");
 
         public final String description;
 
@@ -57,19 +58,24 @@ public class Matching extends Command {
     private void findMatchesUsingFilename() {
         findMatches(MatchType.FILENAME, Comparator.comparing(FileRecord::getFilename));
     }
+    
+    private void findMatchesUsingFilename_Digest_Filesize() {
+        findMatches(MatchType.FILENAME_DIGEST_SIZE, Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
+    }
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        int l = checkTokenCount(1, 4);
+        int l = checkTokenCount(1, 3);
         if (l == 1) {
             findMatchesUsingFilePath_Digest_Filesize();
             findMatchesUsingFilepath();
             findMatchesUsingDigest();
             findMatchesUsingDigest_Filesize();
             findMatchesUsingFilename();
+            findMatchesUsingFilename_Digest_Filesize();
         } else {
-            checkSyntax("match", "duplicates", "using");
-            String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize","digest-filesize");
+            checkSyntax("match", "by");
+            String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize","digest-filesize", "filename-digest-filesize");
             switch (option) {
                 case "filepath" -> {
                     findMatchesUsingFilepath();
@@ -85,6 +91,9 @@ public class Matching extends Command {
                 }
                 case "digest-filesize" -> {
                     findMatchesUsingDigest_Filesize();
+                }
+                case "filename-digest-filesize" -> {
+                    findMatchesUsingFilename_Digest_Filesize();
                 }
             }
         }
@@ -103,7 +112,6 @@ public class Matching extends Command {
             while (iterator.hasNext()) {
                 FileRecord possibleduplicate = iterator.next();
                 if (comparefilerecords.compare(current, possibleduplicate) == 0) {
-                    //if (current.path.equals(possibleduplicate.path)) {
                     if (induplicateset) {
                         rec.add(possibleduplicate);
                     } else {

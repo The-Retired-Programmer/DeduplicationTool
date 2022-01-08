@@ -60,7 +60,8 @@ public class Commands {
             System.out.println("newmodel <modelname> - save the current model and open a new model");
             System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
             System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
-            System.out.println("match duplicates using [filepath|digest|filename]");
+            System.out.println("match by [filepath|digest|filename|filepath-digest-filesize|digest-filesize|filename-digest-filesize]");
+            System.out.println("match");
             System.out.println("echo - display all parameter values");
             System.out.println("echo <parameter> - display parameter value");
             System.out.println("set <parameter> <value> - define a parameter and set its value");
