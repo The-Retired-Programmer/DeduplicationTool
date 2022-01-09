@@ -25,14 +25,12 @@ import static uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionRes
 public class Commands {
 
     public final Map<String, Command> map = new HashMap<>();
+    public final Map<String, String> alias = new HashMap<>();
 
     public Commands() {
-        Command quit = new QuitCommand();
-        map.put("q", quit);
-        map.put("quit", quit);
-        map.put("end", quit);
-        map.put("exit", quit);
+        map.put("quit", new QuitCommand());
         map.put("?", new HelpCommand());
+        map.put("alias", new AliasCommand());
         map.put("export", new Export());
         map.put("newmodel", new NewModel());
         map.put("loadsignatures", new LoadSignatures());
@@ -42,6 +40,10 @@ public class Commands {
         map.put("match", new Matching());
         map.put("extract", new Extract());
         map.put("mark", new Mark());
+        //
+        alias.put("q", "quit");
+        alias.put("end", "quit");
+        alias.put("exit", "quit");
     }
 
     private class QuitCommand extends Command {
@@ -67,6 +69,8 @@ public class Commands {
             System.out.println("echo - display all parameter values");
             System.out.println("echo <parameter> - display parameter value");
             System.out.println("set <parameter> <value> - define a parameter and set its value");
+            System.out.println("alias <name>  is <command> - create a command alias - note <command> should be quoted if it contains spaces");
+            System.out.println("<aliasname> - execute a command alias");
             System.out.println("? - list commands");
             System.out.println("quit | q | exit | end  - exit program");
             return ActionResult.COMPLETEDCONTINUE;
@@ -100,5 +104,18 @@ public class Commands {
             parameters.set(name, val);
             return ActionResult.COMPLETEDCONTINUE;
         }
+    }
+    
+    private class AliasCommand extends Command {
+        
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(4);
+            String name = checkSyntaxAndNAME("alias").toLowerCase();
+            String val = checkSyntaxAndNAME("is");
+            alias.put(name,val);
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+        
     }
 }

@@ -76,9 +76,14 @@ public class CommandProcessor {
         if (tokencount == 0) {
             throw new IOException("no command found: " + commandline);
         }
-        Command c = commands.map.get(tokens.get(0).toLowerCase());
+        String commandFirstWord = tokens.get(0).toLowerCase();
+        Command c = commands.map.get(commandFirstWord);
         if (c == null) {
-            throw new IOException("unknown command found: " + commandline);
+            String aliasString = commands.alias.get(commandFirstWord);
+            if (aliasString == null) {
+                throw new IOException("unknown command found: " + commandline);
+            }
+            return execute(aliasString);
         }
         c.attach(model, parameters);
         c.setTokens(tokens);
