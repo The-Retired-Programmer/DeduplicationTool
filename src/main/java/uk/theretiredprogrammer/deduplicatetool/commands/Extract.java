@@ -20,37 +20,55 @@ import java.io.IOException;
 import uk.theretiredprogrammer.deduplicatetool.support.FolderModel;
 
 public class Extract extends Command {
- 
+
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(6,7);
-        checkSyntax("extract", "by");
-        String option = checkOptionsSyntax("tag","parentpath", "tag-parentpath");
-        switch (option){
-            case "tag" -> {
-                checkTokenCount(6);
-                String tag = checkSyntaxAndNAME();
-                String key = checkSyntaxAndNAME("as");
-                FolderModel fm = new FolderModel(key, model, tag);
-                System.out.println("Extracted "+fm.getAllFileRecords().size()+" FileRecords");
-                model.add(key, fm);
+        checkTokenCount(6, 7, 9);
+        checkSyntax("extract");
+        String typeoption = checkOptionsSyntax("from", "by");
+        switch (typeoption) {
+            case "from" -> {
+                checkTokenCount(9);
+                String extractkey = checkSyntaxAndNAME();
+                String matchkey = checkSyntaxAndNAME("where", "is", "in");
+                String targetkey = checkSyntaxAndNAME("as");
+                FolderModel fm = new FolderModel();
+                fm.setFileModelMatchSource(model, extractkey, matchkey);
+                System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");
+                model.add(targetkey, fm);
             }
-            case "parentpath" -> {
-                checkTokenCount(6);
-                File f = checkSyntaxAndFILEPATH();
-                String key = checkSyntaxAndNAME("as");
-                FolderModel fm = new FolderModel(key, f.getCanonicalPath(), model);
-                System.out.println("Extracted "+fm.getAllFileRecords().size()+" FileRecords");
-                model.add(key, fm);
-            }
-            case "tag-parentpath" -> {
-                checkTokenCount(7);
-                String tag = checkSyntaxAndNAME();
-                File f = checkSyntaxAndFILEPATH();
-                String key = checkSyntaxAndNAME("as");
-                FolderModel fm = new FolderModel(key, f.getCanonicalPath(), model, tag);
-                System.out.println("Extracted "+fm.getAllFileRecords().size()+" FileRecords");
-                model.add(key, fm);
+            case "by" -> {
+                String option = checkOptionsSyntax("tag", "parentpath", "tag-parentpath");
+                switch (option) {
+                    case "tag" -> {
+                        checkTokenCount(6);
+                        String tag = checkSyntaxAndNAME();
+                        String key = checkSyntaxAndNAME("as");
+                        FolderModel fm = new FolderModel();
+                        fm.setTagSource(model, tag);
+                        System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");
+                        model.add(key, fm);
+                    }
+                    case "parentpath" -> {
+                        checkTokenCount(6);
+                        File f = checkSyntaxAndFILEPATH();
+                        String key = checkSyntaxAndNAME("as");
+                        FolderModel fm = new FolderModel();
+                        fm.setFolderpathSource(model, f.getCanonicalPath());
+                        System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");
+                        model.add(key, fm);
+                    }
+                    case "tag-parentpath" -> {
+                        checkTokenCount(7);
+                        String tag = checkSyntaxAndNAME();
+                        File f = checkSyntaxAndFILEPATH();
+                        String key = checkSyntaxAndNAME("as");
+                        FolderModel fm = new FolderModel();
+                        fm.setTagFolderpathSource(model, tag, f.getCanonicalPath());
+                        System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");
+                        model.add(key, fm);
+                    }
+                }
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;

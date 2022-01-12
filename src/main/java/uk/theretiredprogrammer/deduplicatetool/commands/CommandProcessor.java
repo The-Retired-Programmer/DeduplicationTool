@@ -34,12 +34,17 @@ public class CommandProcessor {
     public CommandProcessor(String modelname) throws IOException {
         parameters = new Parameters();
         parameters.set("iCLOUD", "/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/");
-        parameters.set("USER", "/Users/richard/");
-        parameters.set("MODEL", "/Users/richard/DeduplicateTool-Data/"+modelname+"/");
-        this.commands = new Commands();
+        parameters.set("RL", "/Users/richard/");
+        parameters.set("JEL", "/Users/janielinsdale/");
+        parameters.set("MODEL", "/Users/richard/DeduplicateTool-Data/" + modelname + "/");
+        this.commands = new Commands(this);
         this.model = new Model(modelname, parameters);
         // and process the config file (optional)
-        BufferedReader rdr = FileManager.openConfigReader(modelname, parameters);
+        executeCommandfile(modelname, "config");
+    }
+
+    public final void executeCommandfile(String modelname, String filename) throws IOException {
+        BufferedReader rdr = FileManager.openCommandFileReader(modelname, filename, parameters);
         if (rdr != null) {
             String line = rdr.readLine();
             while (line != null) {
@@ -91,7 +96,7 @@ public class CommandProcessor {
     }
 
     private enum State {
-        INWHITESPACE, INTOKEN, INQUOTEDTOKEN
+        INWHITESPACE, INTOKEN, INQUOTEDTOKEN, INSINGLEQUOTEDTOKEN, INBRACESTOKEN
     };
 
     private List<String> extractTokens(String commandline) throws IOException {
@@ -104,6 +109,12 @@ public class CommandProcessor {
                     if (c == '"') {
                         tokenbuffer.setLength(0);
                         state = State.INQUOTEDTOKEN;
+                    } else if (c == '\'') {
+                        tokenbuffer.setLength(0);
+                        state = State.INSINGLEQUOTEDTOKEN;
+                    } else if (c == '{') {
+                        tokenbuffer.setLength(0);
+                        state = State.INBRACESTOKEN;
                     } else if (!Character.isWhitespace(c)) {
                         tokenbuffer.setLength(0);
                         tokenbuffer.append(c);
@@ -126,11 +137,31 @@ public class CommandProcessor {
                         tokenbuffer.append(c);
                     }
                 }
+                case INSINGLEQUOTEDTOKEN -> {
+                    if (c == '\'') {
+                        tokens.add(tokenbuffer.toString());
+                        state = State.INWHITESPACE;
+                    } else {
+                        tokenbuffer.append(c);
+                    }
+                }
+                case INBRACESTOKEN -> {
+                    if (c == '}') {
+                        tokens.add(tokenbuffer.toString());
+                        state = State.INWHITESPACE;
+                    } else {
+                        tokenbuffer.append(c);
+                    }
+                }
             }
         }
         switch (state) {
             case INQUOTEDTOKEN ->
                 throw new IOException("unterminated quoted string at line end - " + commandline);
+            case INSINGLEQUOTEDTOKEN ->
+                throw new IOException("unterminated single quoted string at line end - " + commandline);
+            case INBRACESTOKEN ->
+                throw new IOException("unterminated {...} token at line end - " + commandline);
             case INTOKEN ->
                 tokens.add(tokenbuffer.toString());
         }

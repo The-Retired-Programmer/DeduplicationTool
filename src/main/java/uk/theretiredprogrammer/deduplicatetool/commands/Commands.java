@@ -26,20 +26,23 @@ public class Commands {
 
     public final Map<String, Command> map = new HashMap<>();
     public final Map<String, String> alias = new HashMap<>();
+    private final CommandProcessor commandprocessor;
 
-    public Commands() {
+    public Commands(CommandProcessor commandprocessor) {
+        this.commandprocessor = commandprocessor;
         map.put("quit", new QuitCommand());
-        map.put("?", new HelpCommand());
         map.put("alias", new AliasCommand());
         map.put("export", new Export());
         map.put("newmodel", new NewModel());
         map.put("loadsignatures", new LoadSignatures());
         map.put("extractsignatures", new ExtractSignatures());
-        map.put("echo", new EchoCommand());
+        map.put("list", new ListCommand());
         map.put("set", new SetCommand());
         map.put("match", new Matching());
         map.put("extract", new Extract());
         map.put("mark", new Mark());
+        map.put("run", new RunCommand());
+        map.put("filter", new Filter());
         //
         alias.put("q", "quit");
         alias.put("end", "quit");
@@ -54,41 +57,62 @@ public class Commands {
             return COMPLETEDQUIT;
         }
     }
-
-    private class HelpCommand extends Command {
-
-        @Override
-        public ActionResult execute() throws IOException {
-            checkTokenCount(1);
-            System.out.println("export matches as <filename> - export the match results to filename");
-            System.out.println("newmodel <modelname> - save the current model and open a new model");
-            System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
-            System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
-            System.out.println("match by [filepath|digest|filename|filepath-digest-filesize|digest-filesize|filename-digest-filesize]");
-            System.out.println("match");
-            System.out.println("echo - display all parameter values");
-            System.out.println("echo <parameter> - display parameter value");
-            System.out.println("set <parameter> <value> - define a parameter and set its value");
-            System.out.println("alias <name>  is <command> - create a command alias - note <command> should be quoted if it contains spaces");
-            System.out.println("<aliasname> - execute a command alias");
-            System.out.println("? - list commands");
-            System.out.println("quit | q | exit | end  - exit program");
-            return ActionResult.COMPLETEDCONTINUE;
-        }
-    }
-
-    private class EchoCommand extends Command {
+    
+    private class ListCommand extends Command {
 
         @Override
         public ActionResult execute() throws IOException {
-            int l = checkTokenCount(1, 2);
-            if (l == 1) {
-                for (Entry<String, String> e : parameters.getAll()) {
-                    System.out.println(e.getKey() + " = " + e.getValue());
+            checkTokenCount(2, 3);
+            checkSyntax("list");
+            String option = checkOptionsSyntax("parameters", "parameter", "aliases", "alias");
+            switch (option) {
+                case "parameters" -> {
+                    checkTokenCount(2);
+                    for (Entry<String, String> e : parameters.getAll()) {
+                        System.out.println(e.getKey() + " = " + e.getValue());
+                    }
                 }
-            } else {
-                String name = checkSyntaxAndNAME("echo");
-                System.out.println(name + " = " + parameters.get(name));
+                case "parameter" -> {
+                    checkTokenCount(3);
+                    String name = checkSyntaxAndNAME();
+                    System.out.println(name + " = " + parameters.get(name));
+                }
+                case "aliases" -> {
+                    checkTokenCount(2);
+                    for (Entry<String, String> a : alias.entrySet()) {
+                        System.out.println(a.getKey() + " = " + a.getValue());
+                    }
+                }
+                case "alias" -> {
+                    checkTokenCount(3);
+                    String name = checkSyntaxAndNAME();
+                    System.out.println(name + " = " + alias.get(name));
+                }
+                case "commands" -> {
+                    checkTokenCount(2);
+                    System.out.println("export match as <filename> - export the match results to filename");
+                    System.out.println("export selection <name> as <filename> - export a named filtered filerecord selection to filename");
+                    System.out.println("newmodel <modelname> - save the current model and open a new model");
+                    System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
+                    System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
+                    System.out.println("match by [filepath|digest|filename|filepath-digest-filesize|digest-filesize|filename-digest-filesize]");
+                    System.out.println("match");
+                    System.out.println("extract by tag <tagname> as <targetfilterset> - extract filerecords with tagname and insert into named filterset");
+                    System.out.println("extract by parentpath <parentpath> as <targetfilterset> - extract filerecords with parentpath and insert into named filterset");
+                    System.out.println("extract from <extractname> where is in <matchname> as <targetname> - apply a filter on extractname filtered set and create target name if extrat item is found in match filter set");
+                    System.out.println("extract by tag-parentpath <tagname> <parentpath> as <targetfilterset> - extract filerecords with tagname & parentpathname and insert into named filterset");
+                    System.out.println("list parameters - display all parameter values");
+                    System.out.println("list parameter <name> - display parameter value");
+                    System.out.println("list aliases - display all aliases");
+                    System.out.println("list alias <name> - display alias");
+                    System.out.println("list commands - list all commands");
+                    System.out.println("set <parameter> <value> - define a parameter and set its value");
+                    System.out.println("alias <name>  is <command> - create a command alias - note <command> should be quoted if it contains spaces");
+                    System.out.println("<aliasname> - execute a command alias");
+                    System.out.println("run <command file> - run a command file (located in the model data folder)");
+                    System.out.println("quit | q | exit | end  - exit program");
+                    return ActionResult.COMPLETEDCONTINUE;
+                }
             }
             return ActionResult.COMPLETEDCONTINUE;
         }
@@ -105,17 +129,27 @@ public class Commands {
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
-    
+
     private class AliasCommand extends Command {
-        
+
         @Override
         public ActionResult execute() throws IOException {
             checkTokenCount(4);
-            String name = checkSyntaxAndNAME("alias").toLowerCase();
+            String name = checkSyntaxAndNAME("alias");
             String val = checkSyntaxAndNAME("is");
-            alias.put(name,val);
+            alias.put(name, val);
             return ActionResult.COMPLETEDCONTINUE;
         }
-        
+    }
+
+    private class RunCommand extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String name = checkSyntaxAndNAME("run");
+            commandprocessor.executeCommandfile(model.getModelName(), name);
+            return ActionResult.COMPLETEDCONTINUE;
+        }
     }
 }

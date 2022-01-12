@@ -29,7 +29,7 @@ import java.io.Writer;
 
 public class FileManager {
 
-    private static final String DATAROOT = "?USER?/DeduplicateTool-Data";
+    private static final String DATAROOT = "?RL?DeduplicateTool-Data";
     
     private static File file(String path, Parameters parameters) throws IOException {
         return new File(parameters.substitute(path));
@@ -57,9 +57,9 @@ public class FileManager {
         }
     }
     
-    public static BufferedReader openConfigReader(String modelname, Parameters parameters) throws IOException {
+    public static BufferedReader openCommandFileReader(String modelname, String filename, Parameters parameters) throws IOException {
         File modelpath = file(DATAROOT + "/" + modelname, parameters);
-        File configpath = new File(modelpath + "/config" );
+        File configpath = new File(modelpath + "/"+filename );
         if (modelpath.exists()) {
             if (modelpath.isDirectory()) {
                 return configpath.exists()? openreader(configpath): null;
@@ -106,7 +106,7 @@ public class FileManager {
             BufferedWriter bw = new BufferedWriter(fw);
             return new PrintWriter(bw);
         } else {
-            throw new IOException("Could not create export datafile for " + datapath.getCanonicalPath());
+            throw new IOException("Could not create export/report datafile for " + datapath.getCanonicalPath());
         }
     }
 }

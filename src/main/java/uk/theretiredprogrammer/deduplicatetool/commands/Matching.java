@@ -60,7 +60,7 @@ public class Matching extends Command {
     }
     
     private void findMatchesUsingFilename_Digest_Filesize() {
-        findMatches(MatchType.FILENAME_DIGEST_SIZE, Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
+        findMatches(MatchType.FILENAME_DIGEST_SIZE, Comparator.comparing(FileRecord::getFilename).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
     }
 
     @Override

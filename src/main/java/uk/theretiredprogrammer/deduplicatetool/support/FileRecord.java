@@ -91,4 +91,12 @@ public class FileRecord {
     public String toString() {
         return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize)+"§"+filestatus;
     }
+    
+    public String toReportString() {
+        return path+'\n'+
+                "    status="+filestatus+
+                "    filesize="+filesize+
+                "    tag="+tag+
+                "    digest="+digest;
+    }
 }

@@ -15,32 +15,18 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.support;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.stream.Collectors;
 
 public class FolderModel {
     
-    private final String folderkey;
-    private final String folderpath;
-    private final String tag;
     private final List<FileRecord> allrecords = new ArrayList<>();
     
-    public FolderModel(String folderkey, String folderpath, Model model)  {
-        this.folderkey = folderkey;
-        this.folderpath = folderpath;
-        this.tag = null;
-        for (FileRecord filerecord: model.getAllFileRecords()) {
-            if (filerecord.parentpath.equals(folderpath)){
-                allrecords.add(filerecord);
-            }
-        }
-    }
-    
-    public FolderModel(String folderkey, Model model, String tag)  {
-        this.folderkey = folderkey;
-        this.folderpath = null;
-        this.tag = tag;
+    public void setTagSource(Model model, String tag){
         for (FileRecord filerecord: model.getAllFileRecords()) {
             if (filerecord.tag.equals(tag)){
                 allrecords.add(filerecord);
@@ -48,13 +34,37 @@ public class FolderModel {
         }
     }
     
-    public FolderModel(String folderkey, String folderpath, Model model, String tag)  {
-        this.folderkey = folderkey;
-        this.folderpath = folderpath;
-        this.tag = tag;
+    public void setFolderpathSource(Model model, String folderpath) {
+        for (FileRecord filerecord: model.getAllFileRecords()) {
+            if (filerecord.parentpath.equals(folderpath)){
+                allrecords.add(filerecord);
+            }
+        }
+    }
+    
+    public void setTagFolderpathSource(Model model, String tag, String folderpath) {
         for (FileRecord filerecord: model.getAllFileRecords()) {
             if (filerecord.parentpath.equals(folderpath) && filerecord.tag.equals(tag)){
                 allrecords.add(filerecord);
+            }
+        }
+    }
+    
+    public void setFileModelMatchSource(Model model, String extractkey, String matchkey) throws IOException {
+        Comparator cmp = Comparator.comparing(FileRecord::getFilename).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
+        List<FileRecord> extractlist = model.getFolderModel(extractkey).getAllProcessableFileRecords();
+        extractlist.sort(cmp);
+        List<FileRecord> matchlist = model.getFolderModel(matchkey).getAllFileRecords();
+        matchlist.sort(cmp);
+        ListIterator<FileRecord> extractiterator = extractlist.listIterator();
+        while (extractiterator.hasNext()) {
+            FileRecord extract = extractiterator.next();
+            ListIterator<FileRecord> matchiterator = matchlist.listIterator();
+            while (matchiterator.hasNext()) {
+                FileRecord match = matchiterator.next();
+                if(cmp.compare(extract,match)== 0) {
+                    allrecords.add(extract);
+                }
             }
         }
     }
@@ -66,17 +76,4 @@ public class FolderModel {
     public List<FileRecord> getAllProcessableFileRecords() {
         return allrecords.stream().filter(fr -> fr.getFileStatus().isProcessable()).collect(Collectors.toList());
     }
-    
-    public String getFolderkey(){
-        return folderkey;
-    }
-    
-    public String getFolderpath() {
-        return folderpath;
-    }
-    
-    public String getTag() {
-        return tag;
-    }
-    
 }

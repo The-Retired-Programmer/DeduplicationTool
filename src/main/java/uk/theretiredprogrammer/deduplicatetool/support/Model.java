@@ -30,6 +30,7 @@ public class Model {
     private final List<FileRecord> allrecords = new ArrayList<>();
     private final List<MatchRecord> allmatches = new ArrayList<>();
     private final Map<String,FolderModel> foldermodels = new HashMap<>();
+    private final Map<String,List<FileRecord>> filteredmodels = new HashMap<>();
 
     public Model(String modelname, Parameters parameters) throws IOException {
         this.modelname = modelname;
@@ -52,6 +53,19 @@ public class Model {
     
     public List<FileRecord> getAllFileRecords() {
         return allrecords;
+    }
+    
+    public int add(String key, List<FileRecord> filteredmodel){
+        filteredmodels.put(key, filteredmodel);
+        return filteredmodel.size();
+    }
+    
+    public List<FileRecord> getFilteredModel(String key) throws IOException {
+        List<FileRecord> lfr = filteredmodels.get(key);
+        if ( lfr != null) {
+            return lfr;
+        }
+        throw new IOException("unknown FilteredModel: "+key);
     }
     
     public List<FileRecord> getAllProcessableFileRecords() {
@@ -80,5 +94,9 @@ public class Model {
     
     public void add(String key, FolderModel fmodel){
         foldermodels.put(key, fmodel);
+    }
+    
+    public String getModelName() {
+        return modelname;
     }
 }

@@ -19,17 +19,35 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
 
 public class Export extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(4);
-        File path = checkSyntaxAndFILEPATH("export", "matches", "as");
-        try (PrintWriter wtr = FileManager.openWriter(path)){
-            for (MatchRecord mr: model.getAllMatchRecords()){
-                wtr.println(mr.toString());
+        checkTokenCount(4, 5);
+        checkSyntax("export");
+        String option = checkOptionsSyntax("match", "selection");
+        switch (option) {
+            case "match" -> {
+                checkTokenCount(4);
+                File path = checkSyntaxAndFILEPATH("as");
+                try ( PrintWriter wtr = FileManager.openWriter(path)) {
+                    for (MatchRecord mr : model.getAllMatchRecords()) {
+                        wtr.println(mr.toString());
+                    }
+                }
+            }
+            case "selection" -> {
+                checkTokenCount(5);
+                String name = checkSyntaxAndNAME();
+                File path = checkSyntaxAndFILEPATH("as");
+                try ( PrintWriter wtr = FileManager.openWriter(path)) {
+                    for (FileRecord fr : model.getFolderModel(name).getAllFileRecords()) {
+                        wtr.println(fr.toString());
+                    }
+                }
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
