@@ -22,30 +22,32 @@ import java.util.function.BiPredicate;
 import java.util.stream.Stream;
 
 public class FRFFilter {
-
-    private static final BiPredicate<FileRecord, String> only_unset = (fr, p) -> fr.filestatus.isProcessable();
-    private static final BiPredicate<FileRecord, String> equal_parentpath = (fr, p) -> fr.parentpath.equals(p);
-    private static final BiPredicate<FileRecord, String> equal_tag = (fr, p) -> fr.tag.equals(p);
-    private static final BiPredicate<FileRecord, String> equal_tag_and_parentpath = (fr, parameters) -> {
-        String[] split = parameters.split(",");
-        return split[0].equals(fr.tag) && split[1].equals(fr.parentpath);
+    
+    private final static BiPredicate<FileRecord,String> predicate_null = (FileRecord fr, String p) -> true;
+    private final static BiPredicate<FileRecord,String> predicate_only_unset = (FileRecord fr, String p) -> fr.filestatus.isProcessable();
+    private final static BiPredicate<FileRecord,String> predicate_equal_parentpath = (FileRecord fr, String p) -> fr.parentpath.equals(p);
+    private final static BiPredicate<FileRecord,String> predicate_equal_tag = (FileRecord fr, String p) -> fr.tag.equals(p);
+    private final static BiPredicate<FileRecord, String> predicate_equal_tag_and_parentpath = (FileRecord fr, String p) -> {
+        String[] split = p.split(",");
+        return split[0].trim().equals(fr.tag) && split[1].trim().equals(fr.parentpath);
     };
-    private static final BiPredicate<FileRecord, List<FileRecord>> filenameext_exists_in = (fr, comparelist) -> !comparelist.stream().noneMatch((cf) -> fr.filenameext.equals(cf.filenameext));
+    private final static BiPredicate<FileRecord, List<FileRecord>> predicate_filenameext_exists_in = (FileRecord fr, List<FileRecord> comparelist)
+        -> !comparelist.stream().noneMatch((cf) -> fr.filenameext.equals(cf.filenameext));       
 
-    public static FRFFilter parse(String filterstring) throws IOException {
+    private static final FilterDefinition[] filterDefinitions = new FilterDefinition[]{
+        new FilterDefinition("null", 0, false, predicate_null),
+        new FilterDefinition("only-unset", 0, false, predicate_only_unset),
+        new FilterDefinition("equal-parentpath", 1, false, predicate_equal_parentpath),
+        new FilterDefinition("equal-tag", 1, false, predicate_equal_tag),
+        new FilterDefinition("equal-tag-and-parentpath", 2, false, predicate_equal_tag_and_parentpath),
+        new FilterDefinition("filenameext-exists-in", 1, true, predicate_filenameext_exists_in)
+    };
+
+    public static FRFFilter parse(String[] filters) throws IOException {
         FRFFilter filter = new FRFFilter();
-        // temp
-        filter.add(only_unset);
-        filter.add(equal_parentpath, "/Users/richard/Desktop/exportphotos");
-//        filter.add(equal_tag, "fred");
-//        filter.add(equal_tag_and_parentpath, "fred,/Users/richard/Desktop/exportphotos");
-//        filter.addModelSelector(filenameext_exists_in, "filterlist1");
-        //
-//        if (split.length != 2){
-//            throw new IOException("Filter function EQUAL-TAG-AND-PARENTPATH should have two comma separated parameters");
-//        }
-
-        //
+        for (var filterstring : filters) {
+            filter.parsefilter(filter.extractfiltercommand(filterstring), filter.extractfilterparameters(filterstring));
+        }
         filter.checkCorrect();
         return filter;
     }
@@ -55,25 +57,52 @@ public class FRFFilter {
     private FRFFilter() {
     }
 
-    private void add(BiPredicate<FileRecord, String> predicate) {
-        add(predicate, null);
+    private String extractfiltercommand(String filterstring) {
+        int p = filterstring.indexOf("(");
+        return (p == -1 ? filterstring : filterstring.substring(0, p)).trim();
     }
 
-    private void add(BiPredicate<FileRecord, String> predicate, String parameter) {
-        pANDp.add(new PredicateAndParameter<>(predicate, parameter));
+    private String extractfilterparameters(String filterstring) throws IOException {
+        int p = filterstring.indexOf("(");
+        if (p == -1) {
+            return null;
+        }
+        int q = filterstring.indexOf(")", p);
+        if (q == -1) {
+            throw new IOException("Missing closing bracket on filter " + filterstring.substring(0, p));
+        }
+        return filterstring.substring(p + 1, q).trim();
     }
 
-    private void addModelSelector(BiPredicate<FileRecord, List<FileRecord>> predicate, String parameter) {
-        pANDp.add(new PredicateAndParameter<>(predicate, new ModelSelector(parameter)));
+    private void parsefilter(String filtercommand, String filterparameters) throws IOException {
+        for (FilterDefinition fd : filterDefinitions) {
+            if (fd.syntaxname.equals(filtercommand)) {
+                if (filterparameters == null) {
+                    if (fd.numberofparameters == 0) {
+                        pANDp.add(new PredicateAndParameter(fd.predicate, null));
+                        return;
+                    } else {
+                        throw new IOException("Filter " + filtercommand + " expects " + fd.numberofparameters + " parameters");
+                    }
+                } else {
+                    if (filterparameters.split(",").length != fd.numberofparameters) {
+                        throw new IOException("Filter " + filtercommand + " expects " + fd.numberofparameters + " parameters");
+                    }
+                    pANDp.add(new PredicateAndParameter(fd.predicate, fd.isModelSelector ? new ModelSelector(filterparameters) : filterparameters));
+                    return;
+                }
+            }
+        }
+        throw new IOException("unknown filter: " + filtercommand);
     }
 
     void checkCorrect() throws IOException {
-        if (false) {
-            throw new IOException("Bad Filter chain definition");
-        }
     }
 
     public Stream<FileRecord> executeFilter(Model model, Stream<FileRecord> stream) throws IOException {
+//        if (pANDp.isEmpty()) {
+//            return stream.filter((fr)->true);
+//        }
         for (PredicateAndParameter p : pANDp) {
             if (p.parameter instanceof ModelSelector k) {
                 var list = k.get(model);
@@ -85,12 +114,12 @@ public class FRFFilter {
         return stream;
     }
 
-    private class PredicateAndParameter<T, U> {
+    private class PredicateAndParameter {
 
-        public final BiPredicate<FileRecord, T> predicate;
-        public final U parameter;
+        public final BiPredicate predicate;
+        public final Object parameter;
 
-        public PredicateAndParameter(BiPredicate<FileRecord, T> predicate, U parameter) {
+        public PredicateAndParameter(BiPredicate predicate, Object parameter) {
             this.predicate = predicate;
             this.parameter = parameter;
         }
@@ -106,6 +135,21 @@ public class FRFFilter {
 
         public List<FileRecord> get(Model model) throws IOException {
             return model.getFilteredModel(key);
+        }
+    }
+
+    private static class FilterDefinition {
+
+        public final String syntaxname;
+        public final int numberofparameters;
+        public final BiPredicate predicate;
+        public final boolean isModelSelector;
+
+        public FilterDefinition(String syntaxname, int numberofparameters, boolean isModelSelector, BiPredicate predicate) {
+            this.syntaxname = syntaxname;
+            this.numberofparameters = numberofparameters;
+            this.predicate = predicate;
+            this.isModelSelector = isModelSelector;
         }
     }
 }

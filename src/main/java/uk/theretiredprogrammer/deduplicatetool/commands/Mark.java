@@ -30,7 +30,7 @@ public class Mark extends Command {
         switch (option) {
             case "set" -> {
                 checkTokenCount(5);
-                String key = checkSyntaxAndNAME();
+                String key = checkSyntaxAndLowercaseNAME();
                 checkSyntax("to");
                 String value = checkOptionsSyntax("none", "duplicate-ignore", "to-be-deleted", "file-deleted", "duplicate-candidate");
                 value = value.replace("-", "_").toUpperCase();
@@ -47,7 +47,7 @@ public class Mark extends Command {
             }
             case "reset" -> {
                 checkTokenCount(3);
-                String key = checkSyntaxAndNAME();
+                String key = checkSyntaxAndLowercaseNAME();
                 FolderModel fm = model.getFolderModel(key);
                 for (FileRecord f : fm.getAllFileRecords()) {
                     f.filestatus = FileStatus.NONE;

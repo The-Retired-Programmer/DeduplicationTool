@@ -25,7 +25,7 @@ import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 public class FRFConsumer {
 
     private static enum FILTERCONSUMER {
-        UNDEFINED, SET, NAMEDFILTER, EXPORT, REPORT
+        UNDEFINED, SET, NAMEDFILTER, EXPORT, REPORT, DISPLAY
     }
 
     public static FRFConsumer parse(String filterstring) throws IOException {
@@ -39,7 +39,7 @@ public class FRFConsumer {
 
     private FRFConsumer() {
     }
-    
+
     void setFinalActionIsFilter(String name) {
         consumer = FILTERCONSUMER.NAMEDFILTER;
         consumername = name;
@@ -58,6 +58,10 @@ public class FRFConsumer {
     void setFinalActionIsReport(File path) {
         consumer = FILTERCONSUMER.REPORT;
         consumerpath = path;
+    }
+
+    void setFinalActionIsDisplay() {
+        consumer = FILTERCONSUMER.DISPLAY;
     }
 
     void checkCorrect() throws IOException {
@@ -83,35 +87,28 @@ public class FRFConsumer {
             }
             case EXPORT -> {
                 long recordcounter;
-                if (consumerpath.getName().equals("STDOUT")) {
+                try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
                     recordcounter = stream.map((fr) -> {
-                        System.out.println(fr.toString());
+                        pwtr.println(fr.toString());
                         return fr;
                     }).count();
-                } else {
-                    try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
-                        recordcounter = stream.map((fr) -> {
-                            pwtr.println(fr.toString());
-                            return fr;
-                        }).count();
-                    }
                 }
                 System.out.println("Exported " + recordcounter + " records");
             }
+            case DISPLAY -> {
+                long recordcounter = stream.map((fr) -> {
+                    System.out.println(fr.toReportString());
+                    return fr;
+                }).count();
+                System.out.println("Displayed " + recordcounter + " records");
+            }
             case REPORT -> {
                 long recordcounter;
-                if (consumerpath.getName().equals("STDOUT")) {
+                try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
                     recordcounter = stream.map((fr) -> {
-                        System.out.println(fr.toReportString());
+                        pwtr.println(fr.toReportString());
                         return fr;
                     }).count();
-                } else {
-                    try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
-                        recordcounter = stream.map((fr) -> {
-                            pwtr.println(fr.toReportString());
-                            return fr;
-                        }).count();
-                    }
                 }
                 System.out.println("Reported " + recordcounter + " records");
             }

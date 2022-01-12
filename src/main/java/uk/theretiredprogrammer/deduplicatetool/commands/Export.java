@@ -41,7 +41,7 @@ public class Export extends Command {
             }
             case "selection" -> {
                 checkTokenCount(5);
-                String name = checkSyntaxAndNAME();
+                String name = checkSyntaxAndLowercaseNAME();
                 File path = checkSyntaxAndFILEPATH("as");
                 try ( PrintWriter wtr = FileManager.openWriter(path)) {
                     for (FileRecord fr : model.getFolderModel(name).getAllFileRecords()) {

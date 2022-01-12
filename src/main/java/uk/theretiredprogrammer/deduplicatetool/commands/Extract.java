@@ -29,9 +29,9 @@ public class Extract extends Command {
         switch (typeoption) {
             case "from" -> {
                 checkTokenCount(9);
-                String extractkey = checkSyntaxAndNAME();
-                String matchkey = checkSyntaxAndNAME("where", "is", "in");
-                String targetkey = checkSyntaxAndNAME("as");
+                String extractkey = checkSyntaxAndLowercaseNAME();
+                String matchkey = checkSyntaxAndLowercaseNAME("where", "is", "in");
+                String targetkey = checkSyntaxAndLowercaseNAME("as");
                 FolderModel fm = new FolderModel();
                 fm.setFileModelMatchSource(model, extractkey, matchkey);
                 System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");
@@ -42,8 +42,8 @@ public class Extract extends Command {
                 switch (option) {
                     case "tag" -> {
                         checkTokenCount(6);
-                        String tag = checkSyntaxAndNAME();
-                        String key = checkSyntaxAndNAME("as");
+                        String tag = checkSyntaxAndLowercaseNAME();
+                        String key = checkSyntaxAndLowercaseNAME("as");
                         FolderModel fm = new FolderModel();
                         fm.setTagSource(model, tag);
                         System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");
@@ -60,9 +60,9 @@ public class Extract extends Command {
                     }
                     case "tag-parentpath" -> {
                         checkTokenCount(7);
-                        String tag = checkSyntaxAndNAME();
+                        String tag = checkSyntaxAndLowercaseNAME();
                         File f = checkSyntaxAndFILEPATH();
-                        String key = checkSyntaxAndNAME("as");
+                        String key = checkSyntaxAndLowercaseNAME("as");
                         FolderModel fm = new FolderModel();
                         fm.setTagFolderpathSource(model, tag, f.getCanonicalPath());
                         System.out.println("Extracted " + fm.getAllFileRecords().size() + " FileRecords");

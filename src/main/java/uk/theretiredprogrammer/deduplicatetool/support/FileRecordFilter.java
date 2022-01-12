@@ -17,14 +17,16 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class FileRecordFilter {
 
-    public static FileRecordFilter parse(String filterstring) throws IOException {
+    public static FileRecordFilter parse(Model model, String filterstring) throws IOException {
+        String[] filterparts = filterstring.split(">>");
         FileRecordFilter filter = new FileRecordFilter();
-        filter.source = FRFSource.parse(filterstring);
-        filter.filter = FRFFilter.parse(filterstring);
+        filter.source = FRFSource.parse(model, filterparts[0]);
+        filter.filter = FRFFilter.parse(Arrays.copyOfRange(filterparts,1,filterparts.length));
         filter.consumer = FRFConsumer.parse(filterstring);
         return filter;
     }
@@ -50,6 +52,10 @@ public class FileRecordFilter {
 
     public void setFinalActionIsReport(File path) {
         consumer.setFinalActionIsReport(path);
+    }
+    
+    public void setFinalActionIsDisplay() {
+        consumer.setFinalActionIsDisplay();
     }
 
     void checkCorrect() throws IOException {

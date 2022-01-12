@@ -68,6 +68,12 @@ public class Model {
         throw new IOException("unknown FilteredModel: "+key);
     }
     
+    public void checkValidFilteredModel(String key) throws IOException {
+        if (!filteredmodels.containsKey(key)) {
+            throw new IOException("Filtered Model "+key+ " does not exist");
+        }
+    }
+    
     public List<FileRecord> getAllProcessableFileRecords() {
         return allrecords.stream().filter(fr -> fr.getFileStatus().isProcessable()).collect(Collectors.toList());
     }

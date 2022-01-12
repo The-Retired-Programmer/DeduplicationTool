@@ -57,14 +57,14 @@ public class Commands {
             return COMPLETEDQUIT;
         }
     }
-    
+
     private class ListCommand extends Command {
 
         @Override
         public ActionResult execute() throws IOException {
             checkTokenCount(2, 3);
             checkSyntax("list");
-            String option = checkOptionsSyntax("parameters", "parameter", "aliases", "alias");
+            String option = checkOptionsSyntax("parameters", "parameter", "aliases", "alias", "commands");
             switch (option) {
                 case "parameters" -> {
                     checkTokenCount(2);
@@ -74,7 +74,7 @@ public class Commands {
                 }
                 case "parameter" -> {
                     checkTokenCount(3);
-                    String name = checkSyntaxAndNAME();
+                    String name = checkSyntaxAndLowercaseNAME();
                     System.out.println(name + " = " + parameters.get(name));
                 }
                 case "aliases" -> {
@@ -85,7 +85,7 @@ public class Commands {
                 }
                 case "alias" -> {
                     checkTokenCount(3);
-                    String name = checkSyntaxAndNAME();
+                    String name = checkSyntaxAndLowercaseNAME();
                     System.out.println(name + " = " + alias.get(name));
                 }
                 case "commands" -> {
@@ -123,7 +123,7 @@ public class Commands {
         @Override
         public ActionResult execute() throws IOException {
             checkTokenCount(3);
-            String name = checkSyntaxAndNAME("set");
+            String name = checkSyntaxAndLowercaseNAME("set");
             String val = checkSyntaxAndNAME();
             parameters.set(name, val);
             return ActionResult.COMPLETEDCONTINUE;
@@ -135,7 +135,7 @@ public class Commands {
         @Override
         public ActionResult execute() throws IOException {
             checkTokenCount(4);
-            String name = checkSyntaxAndNAME("alias");
+            String name = checkSyntaxAndLowercaseNAME("alias");
             String val = checkSyntaxAndNAME("is");
             alias.put(name, val);
             return ActionResult.COMPLETEDCONTINUE;

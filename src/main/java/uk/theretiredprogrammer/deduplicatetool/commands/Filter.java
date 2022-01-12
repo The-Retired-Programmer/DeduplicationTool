@@ -16,27 +16,42 @@
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
 import java.io.IOException;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordFilter;
 
 public class Filter extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(4);
-        FileRecordFilter filter = FileRecordFilter.parse(checkSyntaxAndNAME("filter"));
-        String finalaction = checkOptionsSyntax("as", "set", "output", "report");
+        checkTokenCount(3,4);
+        FileRecordFilter filter = FileRecordFilter.parse(model, checkSyntaxAndNAME("filter"));
+        String finalaction = checkOptionsSyntax("as", "set", "output", "report", "display");
         switch (finalaction) {
             case "as" -> {
-                filter.setFinalActionIsFilter(checkSyntaxAndNAME());
+                checkTokenCount(4);
+                filter.setFinalActionIsFilter(checkSyntaxAndLowercaseNAME());
             }
             case "set" -> {
-                filter.setFinalActionIsSet(checkSyntaxAndNAME());
+                checkTokenCount(4);
+                FileStatus[] allstatus = FileStatus.values();
+                String options = "";
+                for (FileStatus fs : allstatus ) {
+                    options += fs.toString()+",";
+                }
+                options = options.substring(0,options.length()-1);
+                filter.setFinalActionIsSet(checkOptionsSyntax(options));
             }
             case "output" -> {
+                checkTokenCount(4);
                 filter.setFinalActionIsExport(checkSyntaxAndFILEPATH());
             }
             case "report" -> {
+                checkTokenCount(4);
                 filter.setFinalActionIsReport(checkSyntaxAndFILEPATH());
+            }
+            case "display" -> {
+                checkTokenCount(3);
+                filter.setFinalActionIsDisplay();
             }
         }
         filter.executeFilter(model);

@@ -22,7 +22,7 @@ public class NewModel extends Command {
     @Override
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(2);
-        String name = checkSyntaxAndNAME("newmodel");
+        String name = checkSyntaxAndLowercaseNAME("newmodel");
         // to be implemented
         return Command.ActionResult.COMPLETEDCONTINUE;
     }

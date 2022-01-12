@@ -60,12 +60,12 @@ public abstract class Command {
                 return length;
             }
         }
-        throw new IOException("Bad command syntax - incorrect number of parameters");
+        throw new IOException("Bad command syntax - incorrect number of parameters - found "+tokens.size());
     }
 
     protected void checkTokenCount(int expectedlength) throws IOException {
         if (tokens.size() != expectedlength) {
-            throw new IOException("Bad command syntax - incorrect number of parameters");
+            throw new IOException("Bad command syntax - incorrect number of parameters - expected "+expectedlength+"; found "+tokens.size());
         }
     }
 
@@ -85,6 +85,11 @@ public abstract class Command {
     protected String checkSyntaxAndNAME(String... syntax) throws IOException {
         checkSyntax(syntax);
         return nextToken();
+    }
+    
+    protected String checkSyntaxAndLowercaseNAME(String... syntax) throws IOException {
+        checkSyntax(syntax);
+        return nextToken().toLowerCase();
     }
 
     protected String checkOptionsSyntax(String... syntax) throws IOException {

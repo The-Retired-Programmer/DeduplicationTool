@@ -24,9 +24,15 @@ public class FRFSource {
         UNDEFINED, ALLFILES, NAMEDFILTER
     }
 
-    public static FRFSource parse(String filterstring) throws IOException {
+    public static FRFSource parse(Model model, String source) throws IOException {
         FRFSource filter = new FRFSource();
-        filter.source = FILTERSOURCE.ALLFILES;
+        if (source.equals("files") || source.equals("allfiles") || source.equals("*")) {
+            filter.source = FILTERSOURCE.ALLFILES;
+        } else {
+           model.checkValidFilteredModel(source);
+           filter.source = FILTERSOURCE.NAMEDFILTER;
+           filter.sourcename = source;
+           } 
         filter.checkCorrect();
         return filter;
     }
@@ -45,6 +51,7 @@ public class FRFSource {
 
     public Stream<FileRecord> getSource(Model model) throws IOException {
         checkCorrect();
-        return (source == FILTERSOURCE.ALLFILES ? model.getAllFileRecords() : model.getFilteredModel(sourcename)).stream();
+        Stream<FileRecord> modelstream = (source == FILTERSOURCE.ALLFILES ? model.getAllFileRecords() : model.getFilteredModel(sourcename)).stream();
+        return modelstream.filter((fr)->true); // ugly fix - otherwise something fails when no application filters defined in chain (confusion between collection creation and lambda creation of stream)
     }
 }
