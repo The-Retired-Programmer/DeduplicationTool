@@ -39,7 +39,6 @@ public class Commands {
         map.put("list", new ListCommand());
         map.put("set", new SetCommand());
         map.put("match", new Matching());
-        map.put("mark", new Mark());
         map.put("run", new RunCommand());
         map.put("filter", new Filter());
         //

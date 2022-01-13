@@ -21,7 +21,6 @@ import java.io.PrintWriter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
-import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
 
 public class Export extends Command {
 
@@ -29,7 +28,7 @@ public class Export extends Command {
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(4, 5);
         checkSyntax("export");
-        String option = checkOptionsSyntax("match", "selection");
+        String option = checkOptionsSyntax("match");
         switch (option) {
             case "match" -> {
                 checkTokenCount(4);
@@ -40,16 +39,6 @@ public class Export extends Command {
                             wtr.println(fr.toString());
                         }
                         wtr.println();
-                    }
-                }
-            }
-            case "selection" -> {
-                checkTokenCount(5);
-                String name = checkSyntaxAndLowercaseNAME();
-                File path = checkSyntaxAndFILEPATH("as");
-                try ( PrintWriter wtr = FileManager.openWriter(path)) {
-                    for (FileRecord fr : model.getFolderModel(name).getAllFileRecords()) {
-                        wtr.println(fr.toString());
                     }
                 }
             }

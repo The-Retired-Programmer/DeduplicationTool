@@ -17,13 +17,11 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 public class Model extends HashMap<String,FileRecordSet> {
 
     private final String modelname;
     private final MatchRecord matchrecord = new MatchRecord();
-    private final Map<String,FolderModel> foldermodels = new HashMap<>();
     
     public static final String ALLFILERECORDS = "*";
 
@@ -70,19 +68,7 @@ public class Model extends HashMap<String,FileRecordSet> {
     public void addToMatchRecord(FileRecordSet match) {
         matchrecord.add(match);
     }
-    
-    public FolderModel getFolderModel(String key) throws IOException{
-        FolderModel fm = foldermodels.get(key);
-        if (fm == null) {
-            throw new IOException("unknow FolderModel: "+key);
-        }
-        return fm;
-    }
 
-    public void add(String key, FolderModel fmodel){
-        foldermodels.put(key, fmodel);
-    }
-    
     public String getModelName() {
         return modelname;
     }
