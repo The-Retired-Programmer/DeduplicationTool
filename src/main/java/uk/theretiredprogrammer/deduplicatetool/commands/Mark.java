@@ -19,6 +19,7 @@ import java.io.IOException;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 import uk.theretiredprogrammer.deduplicatetool.support.FolderModel;
+import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class Mark extends Command {
 
@@ -55,7 +56,7 @@ public class Mark extends Command {
             }
             case "reset-all" -> {
                 checkTokenCount(2);
-                for (FileRecord f : model.getAllFileRecords()) {
+                for (FileRecord f : model.getFileRecordSet(ALLFILERECORDS)) {
                     f.filestatus = FileStatus.NONE;
                 }
             }

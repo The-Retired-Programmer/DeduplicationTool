@@ -17,6 +17,7 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 
 import java.io.IOException;
 import java.util.stream.Stream;
+import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class FRFSource {
 
@@ -29,7 +30,7 @@ public class FRFSource {
         if (source.equals("files") || source.equals("allfiles") || source.equals("*")) {
             filter.source = FILTERSOURCE.ALLFILES;
         } else {
-           model.checkValidFilteredModel(source);
+           model.checkValidFileRecordSet(source);
            filter.source = FILTERSOURCE.NAMEDFILTER;
            filter.sourcename = source;
            } 
@@ -51,7 +52,7 @@ public class FRFSource {
 
     public Stream<FileRecord> getSource(Model model) throws IOException {
         checkCorrect();
-        Stream<FileRecord> modelstream = (source == FILTERSOURCE.ALLFILES ? model.getAllFileRecords() : model.getFilteredModel(sourcename)).stream();
+        Stream<FileRecord> modelstream = (source == FILTERSOURCE.ALLFILES ? model.getFileRecordSet(ALLFILERECORDS) : model.getFileRecordSet(sourcename)).stream();
         return modelstream.filter((fr)->true); // ugly fix - otherwise something fails when no application filters defined in chain (confusion between collection creation and lambda creation of stream)
     }
 }

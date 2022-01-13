@@ -15,71 +15,60 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.support;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class Model {
+public class Model extends HashMap<String,FileRecordSet> {
 
     private final String modelname;
-    private final List<FileRecord> allrecords = new ArrayList<>();
-    private final List<MatchRecord> allmatches = new ArrayList<>();
+    private final MatchRecord matchrecord = new MatchRecord();
     private final Map<String,FolderModel> foldermodels = new HashMap<>();
-    private final Map<String,List<FileRecord>> filteredmodels = new HashMap<>();
+    
+    public static final String ALLFILERECORDS = "*";
 
-    public Model(String modelname, Parameters parameters) throws IOException {
+    public Model(String modelname) {
         this.modelname = modelname;
-        try ( BufferedReader rdr = FileManager.openModelReader(modelname, parameters)) {
-            String line = rdr.readLine();
-            while (line != null) {
-                allrecords.add(new FileRecord(line));
-                line = rdr.readLine();
-            }
-        }
+    }
+    
+    public void load(Parameters parameters) throws IOException {
+        AllFileRecordSet allfilerecords = new AllFileRecordSet();
+        allfilerecords.load(modelname, parameters);
+        put(ALLFILERECORDS, allfilerecords);
     }
     
     public void save(Parameters parameters) throws IOException {
-        try (PrintWriter wtr = FileManager.openModelWriter(modelname, parameters)){
-            for (FileRecord fr: allrecords){
-                wtr.println(fr.toString());
-            }
-        }
+       ((AllFileRecordSet)getFileRecordSet(ALLFILERECORDS)).save(modelname, parameters);
     }
     
-    public List<FileRecord> getAllFileRecords() {
-        return allrecords;
+    public int getFileRecordSetSize(String key) throws IOException{
+        return getFileRecordSet(key).size();
     }
     
-    public int add(String key, List<FileRecord> filteredmodel){
-        filteredmodels.put(key, filteredmodel);
-        return filteredmodel.size();
-    }
-    
-    public List<FileRecord> getFilteredModel(String key) throws IOException {
-        List<FileRecord> lfr = filteredmodels.get(key);
+    public FileRecordSet getFileRecordSet(String key) throws IOException {
+        FileRecordSet lfr = get(key);
         if ( lfr != null) {
             return lfr;
         }
-        throw new IOException("unknown FilteredModel: "+key);
+        throw new IOException("unknown FileRecordSet: "+key);
     }
     
-    public void checkValidFilteredModel(String key) throws IOException {
-        if (!filteredmodels.containsKey(key)) {
-            throw new IOException("Filtered Model "+key+ " does not exist");
+    public void checkValidFileRecordSet(String key) throws IOException {
+        if (!containsKey(key)) {
+            throw new IOException("FileRecordSet "+key+ " does not exist");
         }
     }
     
-    public List<FileRecord> getAllProcessableFileRecords() {
-        return allrecords.stream().filter(fr -> fr.getFileStatus().isProcessable()).collect(Collectors.toList());
+    public MatchRecord getMatchRecord() {
+        return matchrecord;
     }
     
-    public List<MatchRecord> getAllMatchRecords() {
-        return allmatches;
+    public void clearMatchRecord() {
+        matchrecord.clear();
+    }
+    
+    public void addToMatchRecord(FileRecordSet match) {
+        matchrecord.add(match);
     }
     
     public FolderModel getFolderModel(String key) throws IOException{
@@ -90,14 +79,6 @@ public class Model {
         return fm;
     }
 
-    public void add(FileRecord fr) {
-        allrecords.add(fr);
-    }
-    
-    public void add(MatchRecord mr) {
-        allmatches.add(mr);
-    }
-    
     public void add(String key, FolderModel fmodel){
         foldermodels.put(key, fmodel);
     }

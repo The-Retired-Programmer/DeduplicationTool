@@ -18,7 +18,10 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 
@@ -82,8 +85,8 @@ public class FRFConsumer {
                 System.out.println("Updated " + size + " records");
             }
             case NAMEDFILTER -> {
-                int size = model.add(consumername, stream.toList());
-                System.out.println("Collected " + size + " records");
+                model.put(consumername, new FileRecordSet(stream.collect(Collectors.toSet())));
+                System.out.println("Collected " + model.getFileRecordSetSize(consumername) + " records");
             }
             case EXPORT -> {
                 long recordcounter;

@@ -38,7 +38,8 @@ public class CommandProcessor {
         parameters.set("JEL", "/Users/janielinsdale/");
         parameters.set("MODEL", "/Users/richard/DeduplicateTool-Data/" + modelname + "/");
         this.commands = new Commands(this);
-        this.model = new Model(modelname, parameters);
+        this.model = new Model(modelname);
+        model.load(parameters);
         // and process the config file (optional)
         executeCommandfile(modelname, "config");
     }

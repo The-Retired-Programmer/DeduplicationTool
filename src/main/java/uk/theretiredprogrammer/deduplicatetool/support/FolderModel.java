@@ -21,29 +21,30 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
+import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class FolderModel {
     
     private final List<FileRecord> allrecords = new ArrayList<>();
     
-    public void setTagSource(Model model, String tag){
-        for (FileRecord filerecord: model.getAllFileRecords()) {
+    public void setTagSource(Model model, String tag) throws IOException{
+        for (FileRecord filerecord: model.getFileRecordSet(ALLFILERECORDS)) {
             if (filerecord.tag.equals(tag)){
                 allrecords.add(filerecord);
             }
         }
     }
     
-    public void setFolderpathSource(Model model, String folderpath) {
-        for (FileRecord filerecord: model.getAllFileRecords()) {
+    public void setFolderpathSource(Model model, String folderpath) throws IOException {
+        for (FileRecord filerecord: model.getFileRecordSet(ALLFILERECORDS)) {
             if (filerecord.parentpath.equals(folderpath)){
                 allrecords.add(filerecord);
             }
         }
     }
     
-    public void setTagFolderpathSource(Model model, String tag, String folderpath) {
-        for (FileRecord filerecord: model.getAllFileRecords()) {
+    public void setTagFolderpathSource(Model model, String tag, String folderpath) throws IOException {
+        for (FileRecord filerecord: model.getFileRecordSet(ALLFILERECORDS)) {
             if (filerecord.parentpath.equals(folderpath) && filerecord.tag.equals(tag)){
                 allrecords.add(filerecord);
             }

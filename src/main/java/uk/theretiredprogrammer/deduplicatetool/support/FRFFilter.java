@@ -31,7 +31,7 @@ public class FRFFilter {
         String[] split = p.split(",");
         return split[0].trim().equals(fr.tag) && split[1].trim().equals(fr.parentpath);
     };
-    private final static BiPredicate<FileRecord, List<FileRecord>> predicate_filenameext_exists_in = (FileRecord fr, List<FileRecord> comparelist)
+    private final static BiPredicate<FileRecord, FileRecordSet> predicate_filenameext_exists_in = (FileRecord fr, FileRecordSet comparelist)
         -> !comparelist.stream().noneMatch((cf) -> fr.filenameext.equals(cf.filenameext));       
 
     private static final FilterDefinition[] filterDefinitions = new FilterDefinition[]{
@@ -100,13 +100,10 @@ public class FRFFilter {
     }
 
     public Stream<FileRecord> executeFilter(Model model, Stream<FileRecord> stream) throws IOException {
-//        if (pANDp.isEmpty()) {
-//            return stream.filter((fr)->true);
-//        }
         for (PredicateAndParameter p : pANDp) {
             if (p.parameter instanceof ModelSelector k) {
-                var list = k.get(model);
-                stream = stream.filter((fr) -> p.predicate.test(fr, list));
+                var set = k.get(model);
+                stream = stream.filter((fr) -> p.predicate.test(fr, set));
             } else {
                 stream = stream.filter((fr) -> p.predicate.test(fr, p.parameter));
             }
@@ -133,8 +130,8 @@ public class FRFFilter {
             this.key = key;
         }
 
-        public List<FileRecord> get(Model model) throws IOException {
-            return model.getFilteredModel(key);
+        public FileRecordSet get(Model model) throws IOException {
+            return model.getFileRecordSet(key);
         }
     }
 

@@ -18,13 +18,14 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class MatchRecord extends HashSet<FileRecordSet> {
-
-    public MatchRecord() {
+public class FileRecordSet extends HashSet<FileRecord> {
+    
+    public FileRecordSet() {
         super();
     }
     
-    public MatchRecord(Collection a) {
+    public FileRecordSet(Collection<FileRecord> a) {
         super(a);
     }
+    
 }

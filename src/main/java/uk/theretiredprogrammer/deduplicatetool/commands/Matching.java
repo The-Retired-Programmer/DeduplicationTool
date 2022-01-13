@@ -16,11 +16,13 @@
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class Matching extends Command {
 
@@ -50,7 +52,7 @@ public class Matching extends Command {
     private void findMatchesUsingDigest() {
         findMatches(MatchType.DIGEST, Comparator.comparing(FileRecord::getDigest));
     }
-    
+
     private void findMatchesUsingDigest_Filesize() {
         findMatches(MatchType.DIGEST_SIZE, Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
     }
@@ -58,7 +60,7 @@ public class Matching extends Command {
     private void findMatchesUsingFilename() {
         findMatches(MatchType.FILENAME, Comparator.comparing(FileRecord::getFilename));
     }
-    
+
     private void findMatchesUsingFilename_Digest_Filesize() {
         findMatches(MatchType.FILENAME_DIGEST_SIZE, Comparator.comparing(FileRecord::getFilename).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
     }
@@ -75,7 +77,7 @@ public class Matching extends Command {
             findMatchesUsingFilename_Digest_Filesize();
         } else {
             checkSyntax("match", "by");
-            String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize","digest-filesize", "filename-digest-filesize");
+            String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize", "digest-filesize", "filename-digest-filesize");
             switch (option) {
                 case "filepath" -> {
                     findMatchesUsingFilepath();
@@ -102,32 +104,40 @@ public class Matching extends Command {
 
     @SuppressWarnings("null")
     private void findMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
-        List<FileRecord> allrecords = model.getAllProcessableFileRecords();
-        allrecords.sort(comparefilerecords);
-        if (allrecords.size() > 1) {
-            ListIterator<FileRecord> iterator = allrecords.listIterator();
+        model.clearMatchRecord();
+        FileRecordSet allrecords=null;
+        try {
+            allrecords = model.getFileRecordSet(ALLFILERECORDS);
+        } catch (IOException ex) {
+            // squash the IOException which actually will never happen
+        }
+        List<FileRecord> orderedset = new ArrayList<>(allrecords);
+        orderedset.sort(comparefilerecords);
+        if (orderedset.size() > 1) {
+            Iterator<FileRecord> iterator = orderedset.iterator();
             FileRecord current = iterator.next();
             boolean induplicateset = false;
-            MatchRecord rec = null;
+            FileRecordSet rec = null;
             while (iterator.hasNext()) {
                 FileRecord possibleduplicate = iterator.next();
                 if (comparefilerecords.compare(current, possibleduplicate) == 0) {
                     if (induplicateset) {
                         rec.add(possibleduplicate);
                     } else {
-                        rec = new MatchRecord(matchtype, current);
+                        rec = new FileRecordSet();
+                        rec.add(current);
                         rec.add(possibleduplicate);
                         induplicateset = true;
                     }
                 } else {
                     if (induplicateset) {
                         induplicateset = false;
-                        model.add(rec);
+                        model.addToMatchRecord(rec);
                     }
                     current = possibleduplicate;
                 }
             }
         }
-        System.out.println("MATCHES: type=" + matchtype.description + ", number=" + model.getAllMatchRecords().size());
+        System.out.println("MATCHES: type=" + matchtype.description + ", number of matches=" + model.getMatchRecord().size());
     }
 }

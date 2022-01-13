@@ -39,7 +39,6 @@ public class Commands {
         map.put("list", new ListCommand());
         map.put("set", new SetCommand());
         map.put("match", new Matching());
-        map.put("extract", new Extract());
         map.put("mark", new Mark());
         map.put("run", new RunCommand());
         map.put("filter", new Filter());
@@ -90,17 +89,16 @@ public class Commands {
                 }
                 case "commands" -> {
                     checkTokenCount(2);
+                    System.out.println("filter <filterchanindescriptor> set <filestatus value> - run the filter chanin to create a subset of input filerecordset, set the filestatus to the value on all the subset");
+                    System.out.println("filter <filterchanindescriptor> as <subset name> - run the filter chanin to create a subset of input filerecordset, and save as a named subset for reuseT");
+                    System.out.println("filter <filterchanindescriptor> display - run the filter chanin to create a subset of input filerecordset, display it on SYSOUT");
+                    System.out.println("filter <filterchanindescriptor> output <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is same as used in load signature)");
+                    System.out.println("filter <filterchanindescriptor> report <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is easier for human reading)");
                     System.out.println("export match as <filename> - export the match results to filename");
-                    System.out.println("export selection <name> as <filename> - export a named filtered filerecord selection to filename");
                     System.out.println("newmodel <modelname> - save the current model and open a new model");
                     System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
                     System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
                     System.out.println("match by [filepath|digest|filename|filepath-digest-filesize|digest-filesize|filename-digest-filesize]");
-                    System.out.println("match");
-                    System.out.println("extract by tag <tagname> as <targetfilterset> - extract filerecords with tagname and insert into named filterset");
-                    System.out.println("extract by parentpath <parentpath> as <targetfilterset> - extract filerecords with parentpath and insert into named filterset");
-                    System.out.println("extract from <extractname> where is in <matchname> as <targetname> - apply a filter on extractname filtered set and create target name if extrat item is found in match filter set");
-                    System.out.println("extract by tag-parentpath <tagname> <parentpath> as <targetfilterset> - extract filerecords with tagname & parentpathname and insert into named filterset");
                     System.out.println("list parameters - display all parameter values");
                     System.out.println("list parameter <name> - display parameter value");
                     System.out.println("list aliases - display all aliases");

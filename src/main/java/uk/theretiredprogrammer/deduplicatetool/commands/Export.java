@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
 import uk.theretiredprogrammer.deduplicatetool.support.MatchRecord;
 
 public class Export extends Command {
@@ -34,8 +35,11 @@ public class Export extends Command {
                 checkTokenCount(4);
                 File path = checkSyntaxAndFILEPATH("as");
                 try ( PrintWriter wtr = FileManager.openWriter(path)) {
-                    for (MatchRecord mr : model.getAllMatchRecords()) {
-                        wtr.println(mr.toString());
+                    for (FileRecordSet frs : model.getMatchRecord()) {
+                        for (FileRecord fr : frs) {
+                            wtr.println(fr.toString());
+                        }
+                        wtr.println();
                     }
                 }
             }
