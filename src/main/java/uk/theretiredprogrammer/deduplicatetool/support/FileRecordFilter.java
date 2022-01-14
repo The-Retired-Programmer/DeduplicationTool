@@ -45,6 +45,10 @@ public class FileRecordFilter {
     public void setFinalActionIsSet(String name) {
         consumer.setFinalActionIsSet(name);
     }
+    
+    public void setFinalActionIsReset() {
+        consumer.setFinalActionIsReset();
+    }
 
     public void setFinalActionIsExport(File path) {
         consumer.setFinalActionIsExport(path);

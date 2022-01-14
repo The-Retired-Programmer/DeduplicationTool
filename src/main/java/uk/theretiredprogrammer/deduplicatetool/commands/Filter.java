@@ -25,7 +25,7 @@ public class Filter extends Command {
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(3,4);
         FileRecordFilter filter = FileRecordFilter.parse(model, checkSyntaxAndNAME("filter"));
-        String finalaction = checkOptionsSyntax("as", "set", "output", "report", "display");
+        String finalaction = checkOptionsSyntax("as", "set", "reset", "output", "report", "display");
         switch (finalaction) {
             case "as" -> {
                 checkTokenCount(4);
@@ -38,8 +38,12 @@ public class Filter extends Command {
                 for (FileStatus fs : allstatus ) {
                     options += fs.toString()+",";
                 }
-                options = options.substring(0,options.length()-1);
-                filter.setFinalActionIsSet(checkOptionsSyntax(options));
+                options = options.substring(0,options.length()-1).toLowerCase();
+                filter.setFinalActionIsSet(checkOptionsSyntax(options.split(",")).toUpperCase());
+            }
+            case "reset" -> {
+                checkTokenCount(3);
+                filter.setFinalActionIsReset();
             }
             case "output" -> {
                 checkTokenCount(4);

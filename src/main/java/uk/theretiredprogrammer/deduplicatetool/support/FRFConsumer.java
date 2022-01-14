@@ -18,8 +18,6 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,7 +26,7 @@ import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 public class FRFConsumer {
 
     private static enum FILTERCONSUMER {
-        UNDEFINED, SET, NAMEDFILTER, EXPORT, REPORT, DISPLAY
+        UNDEFINED, SET, RESET, NAMEDFILTER, EXPORT, REPORT, DISPLAY
     }
 
     public static FRFConsumer parse(String filterstring) throws IOException {
@@ -51,6 +49,10 @@ public class FRFConsumer {
     void setFinalActionIsSet(String name) {
         consumer = FILTERCONSUMER.SET;
         consumername = name;
+    }
+    
+    void setFinalActionIsReset() {
+        consumer = FILTERCONSUMER.RESET;
     }
 
     void setFinalActionIsExport(File path) {
@@ -77,12 +79,22 @@ public class FRFConsumer {
         checkCorrect();
         switch (consumer) {
             case SET -> {
-                Function<FileRecord, FileRecord> setStatus = (fr) -> {
-                    fr.filestatus = FileStatus.valueOf(consumername);
+                long size = stream.filter((fr) -> {
+                    if (fr.filestatus == FileStatus.NONE) {
+                        fr.filestatus = FileStatus.valueOf(consumername);
+                        return true;
+                    }
+                    return false;
+                }).count();
+                System.out.println("Successfully Updated " + size + " records");
+            }
+            case RESET -> {
+                Function<FileRecord, FileRecord> resetStatus = (fr) -> {
+                    fr.filestatus = FileStatus.NONE;
                     return fr;
                 };
-                long size = stream.map(setStatus).count();
-                System.out.println("Updated " + size + " records");
+                long size = stream.map(resetStatus).count();
+                System.out.println("Reset " + size + " records");
             }
             case NAMEDFILTER -> {
                 model.put(consumername, new FileRecordSet(stream.collect(Collectors.toSet())));
