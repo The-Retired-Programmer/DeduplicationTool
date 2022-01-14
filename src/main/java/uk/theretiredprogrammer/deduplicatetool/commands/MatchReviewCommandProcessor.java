@@ -15,51 +15,26 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult;
 import static uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult.COMPLETEDQUIT;
-import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
-import uk.theretiredprogrammer.deduplicatetool.support.Parameters;
 import uk.theretiredprogrammer.deduplicatetool.support.SYSIN;
 
-public class CommandProcessor {
+public class MatchReviewCommandProcessor {
 
     private final Model model;
-    private final Parameters parameters;
-    private final Commands commands;
+    private final MatchReviewCommands commands;
 
-    public CommandProcessor(String modelname) throws IOException {
-        parameters = new Parameters();
-        parameters.set("iCLOUD", "/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/");
-        parameters.set("RL", "/Users/richard/");
-        parameters.set("JEL", "/Users/janielinsdale/");
-        parameters.set("MODEL", "/Users/richard/DeduplicateTool-Data/" + modelname + "/");
-        this.commands = new Commands(this);
-        this.model = new Model(modelname, parameters);
-        model.load();
-        // and process the config file (optional)
-        executeCommandfile(modelname, "config");
-    }
-
-    public final void executeCommandfile(String modelname, String filename) throws IOException {
-        BufferedReader rdr = FileManager.openCommandFileReader(modelname, filename, parameters);
-        if (rdr != null) {
-            String line = rdr.readLine();
-            while (line != null) {
-                boolean quit = execute(line) == COMPLETEDQUIT;
-                line = quit ? null : rdr.readLine();
-            }
-            rdr.close();
-        }
+    public MatchReviewCommandProcessor(Model model) throws IOException {
+        this.model = model;
+        commands = new MatchReviewCommands();
     }
 
     public void executeSYSIN() throws IOException {
-        
-        String line = SYSIN.readLine("?");
+        String line = SYSIN.readLine("¿");
         while (line != null) {
             boolean quit = false;
             try {
@@ -67,9 +42,8 @@ public class CommandProcessor {
             } catch (IOException ex) {
                 System.err.println(ex.getMessage());
             }
-            line = quit ? null : SYSIN.readLine("?");
+            line = quit ? null : SYSIN.readLine("¿");
         }
-        model.save();
     }
 
     private ActionResult execute(String commandline) throws IOException {
@@ -85,13 +59,9 @@ public class CommandProcessor {
         String commandFirstWord = tokens.get(0).toLowerCase();
         Command c = commands.map.get(commandFirstWord);
         if (c == null) {
-            String aliasString = commands.alias.get(commandFirstWord);
-            if (aliasString == null) {
-                throw new IOException("unknown command found: " + commandline);
-            }
-            return execute(aliasString);
+            throw new IOException("unknown command found: " + commandline);
         }
-        c.attach(model, parameters);
+        c.attach(model, model.parameters);
         c.setTokens(tokens);
         return c.execute();
     }

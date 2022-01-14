@@ -26,7 +26,7 @@ import java.util.Map;
 public class Model extends FileRecordSet implements StorableSet {
 
     private final String modelname;
-    private final Parameters parameters;
+    public final Parameters parameters;
     private final List<FileRecordSet> matchrecords = new ArrayList<>();
     private final Map<String, FileRecordSet> sets = new HashMap<>();
 

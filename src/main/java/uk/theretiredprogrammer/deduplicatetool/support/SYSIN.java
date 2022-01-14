@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.theretiredprogrammer.deduplicatetool;
+package uk.theretiredprogrammer.deduplicatetool.support;
 
-import uk.theretiredprogrammer.deduplicatetool.commands.CommandProcessor;
+import java.io.BufferedReader;
 import java.io.IOException;
-import uk.theretiredprogrammer.deduplicatetool.support.SYSIN;
 
-public class App {
+public class SYSIN {
 
-    public static void main(String args[]) {
-        try {
-            SYSIN.init();
-            var cp = new CommandProcessor(args[0]);
-            cp.executeSYSIN();
-        } catch (IOException ex) {
-            System.err.println(ex.getMessage());
-        }
+    private static BufferedReader rdr;
+
+    public static String readLine(String prompt) throws IOException {
+        System.out.print(prompt);
+        System.out.flush();
+        return rdr.readLine();
+    }
+
+    public static String readLine() throws IOException {
+        return rdr.readLine();
+    }
+
+    public static void init() throws IOException {
+        rdr = FileManager.openInReader();
     }
 }

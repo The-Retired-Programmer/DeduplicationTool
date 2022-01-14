@@ -23,7 +23,7 @@ import java.util.List;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
 
-public class Matching extends Command {
+public class Match extends Command {
 
     public static enum MatchType {
         PATH("filepath"),
@@ -40,6 +40,45 @@ public class Matching extends Command {
         }
     }
 
+    @Override
+    public Command.ActionResult execute() throws IOException {
+        checkTokenCount(2, 3);
+        checkSyntax("match");
+        String subcommand = checkOptionsSyntax("create", "review");
+        switch (subcommand) {
+            case "find" -> {
+                checkTokenCount(3);
+                String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize", "digest-filesize", "filename-digest-filesize");
+                switch (option) {
+                    case "filepath" -> {
+                        findMatchesUsingFilepath();
+                    }
+                    case "digest" -> {
+                        findMatchesUsingDigest();
+                    }
+                    case "filename" -> {
+                        findMatchesUsingFilename();
+                    }
+                    case "filepath-digest-filesize" -> {
+                        findMatchesUsingFilePath_Digest_Filesize();
+                    }
+                    case "digest-filesize" -> {
+                        findMatchesUsingDigest_Filesize();
+                    }
+                    case "filename-digest-filesize" -> {
+                        findMatchesUsingFilename_Digest_Filesize();
+                    }
+                }
+            }
+            case "review" -> {
+                checkTokenCount(2);
+                MatchReviewCommandProcessor reviewCP = new MatchReviewCommandProcessor(model);
+                reviewCP.executeSYSIN();
+            }
+        }
+        return Command.ActionResult.COMPLETEDCONTINUE;
+    }
+    
     private void findMatchesUsingFilePath_Digest_Filesize() {
         findMatches(MatchType.PATH_DIGEST_SIZE, Comparator.comparing(FileRecord::getFilepath).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
     }
@@ -62,43 +101,6 @@ public class Matching extends Command {
 
     private void findMatchesUsingFilename_Digest_Filesize() {
         findMatches(MatchType.FILENAME_DIGEST_SIZE, Comparator.comparing(FileRecord::getFilename).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
-    }
-
-    @Override
-    public Command.ActionResult execute() throws IOException {
-        int l = checkTokenCount(1, 3);
-        if (l == 1) {
-            findMatchesUsingFilePath_Digest_Filesize();
-            findMatchesUsingFilepath();
-            findMatchesUsingDigest();
-            findMatchesUsingDigest_Filesize();
-            findMatchesUsingFilename();
-            findMatchesUsingFilename_Digest_Filesize();
-        } else {
-            checkSyntax("match", "by");
-            String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize", "digest-filesize", "filename-digest-filesize");
-            switch (option) {
-                case "filepath" -> {
-                    findMatchesUsingFilepath();
-                }
-                case "digest" -> {
-                    findMatchesUsingDigest();
-                }
-                case "filename" -> {
-                    findMatchesUsingFilename();
-                }
-                case "filepath-digest-filesize" -> {
-                    findMatchesUsingFilePath_Digest_Filesize();
-                }
-                case "digest-filesize" -> {
-                    findMatchesUsingDigest_Filesize();
-                }
-                case "filename-digest-filesize" -> {
-                    findMatchesUsingFilename_Digest_Filesize();
-                }
-            }
-        }
-        return Command.ActionResult.COMPLETEDCONTINUE;
     }
 
     @SuppressWarnings("null")

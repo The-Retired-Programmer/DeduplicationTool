@@ -38,7 +38,7 @@ public class Commands {
         map.put("extractsignatures", new ExtractSignatures());
         map.put("list", new ListCommand());
         map.put("set", new SetCommand());
-        map.put("match", new Matching());
+        map.put("match", new Match());
         map.put("run", new RunCommand());
         map.put("filter", new Filter());
         //
