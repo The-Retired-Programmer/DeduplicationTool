@@ -17,16 +17,22 @@ package uk.theretiredprogrammer.deduplicatetool.commands;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult;
 import static uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult.COMPLETEDQUIT;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class MatchReviewCommands {
 
     public final Map<String, Command> map = new HashMap<>();
 
-    public MatchReviewCommands() {
+    public MatchReviewCommands(Model model) throws IOException {
         map.put("q", new Quit());
+        map.put("<<", new First());
+        map.put(">>", new Last());
         map.put(">", new Next());
         map.put("<", new Previous());
         map.put("1", new SelectFileRecord(1));
@@ -39,6 +45,28 @@ public class MatchReviewCommands {
         map.put("8", new SelectFileRecord(8));
         map.put("9", new SelectFileRecord(9));
         map.put("?", new DisplayMatch());
+        //
+        matches = model.getMatchRecords();
+        if (matches.isEmpty()) {
+            throw new IOException("No Matches created");
+        }
+        sizeFRS = matches.size();
+        first();
+    }
+
+    private final List<FileRecordSet> matches;
+    private int indexFRS;
+    private int sizeFRS;
+    private FileRecordSet currentMatchFileRecordSet;
+
+    private void moveToNewMatchFRS() {
+        currentMatchFileRecordSet = matches.get(indexFRS);
+        displayMatch();
+    }
+
+    private void first() {
+        indexFRS = 0;
+        moveToNewMatchFRS();
     }
 
     private class Quit extends Command {
@@ -62,10 +90,12 @@ public class MatchReviewCommands {
         }
     }
 
-    private class Next extends Command {
+    private class First extends Command {
 
         @Override
         public ActionResult execute() throws IOException {
+            indexFRS = 0;
+            moveToNewMatchFRS();
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -74,6 +104,32 @@ public class MatchReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
+            if (indexFRS > 0) {
+                indexFRS--;
+                moveToNewMatchFRS();
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class Next extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            if (indexFRS < sizeFRS - 1) {
+                indexFRS++;
+                moveToNewMatchFRS();
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class Last extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            indexFRS = sizeFRS - 1;
+            moveToNewMatchFRS();
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -96,7 +152,14 @@ public class MatchReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
+            displayMatch();
             return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private void displayMatch() {
+        for (FileRecord fr : currentMatchFileRecordSet) {
+            System.out.println(fr.toReportString());
         }
     }
 

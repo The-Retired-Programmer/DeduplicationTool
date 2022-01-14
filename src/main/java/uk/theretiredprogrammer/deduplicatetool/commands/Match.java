@@ -46,7 +46,7 @@ public class Match extends Command {
         checkSyntax("match");
         String subcommand = checkOptionsSyntax("create", "review");
         switch (subcommand) {
-            case "find" -> {
+            case "create" -> {
                 checkTokenCount(3);
                 String option = checkOptionsSyntax("filepath", "digest", "filename", "filepath-digest-filesize", "digest-filesize", "filename-digest-filesize");
                 switch (option) {

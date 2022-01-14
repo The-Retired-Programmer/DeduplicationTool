@@ -30,7 +30,7 @@ public class MatchReviewCommandProcessor {
 
     public MatchReviewCommandProcessor(Model model) throws IOException {
         this.model = model;
-        commands = new MatchReviewCommands();
+        commands = new MatchReviewCommands(model);
     }
 
     public void executeSYSIN() throws IOException {
