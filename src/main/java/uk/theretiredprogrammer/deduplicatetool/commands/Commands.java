@@ -88,7 +88,8 @@ public class Commands {
                 }
                 case "commands" -> {
                     checkTokenCount(2);
-                    System.out.println("filter <filterchanindescriptor> set <filestatus value> - run the filter chanin to create a subset of input filerecordset, set the filestatus to the value on all the subset");
+                    System.out.println("filter <filterchanindescriptor> set <filestatus value> - run the filter chanin to create a subset of input filerecordset, set the filestatus to the value on all the subset, only if filestatus was NONE");
+                    System.out.println("filter <filterchanindescriptor> reset  - run the filter chanin to create a subset of input filerecordset, reset the filestatus to NONE on all the subset");
                     System.out.println("filter <filterchanindescriptor> as <subset name> - run the filter chanin to create a subset of input filerecordset, and save as a named subset for reuseT");
                     System.out.println("filter <filterchanindescriptor> display - run the filter chanin to create a subset of input filerecordset, display it on SYSOUT");
                     System.out.println("filter <filterchanindescriptor> output <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is same as used in load signature)");
