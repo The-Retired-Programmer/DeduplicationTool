@@ -17,7 +17,6 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class FRFSource {
 
@@ -27,13 +26,13 @@ public class FRFSource {
 
     public static FRFSource parse(Model model, String source) throws IOException {
         FRFSource filter = new FRFSource();
-        if (source.equals("files") || source.equals("allfiles") || source.equals("*")) {
+        if (source.equals("*")) {
             filter.source = FILTERSOURCE.ALLFILES;
         } else {
-           model.checkValidFileRecordSet(source);
-           filter.source = FILTERSOURCE.NAMEDFILTER;
-           filter.sourcename = source;
-           } 
+            model.checkValidSet(source);
+            filter.source = FILTERSOURCE.NAMEDFILTER;
+            filter.sourcename = source;
+        }
         filter.checkCorrect();
         return filter;
     }
@@ -52,7 +51,7 @@ public class FRFSource {
 
     public Stream<FileRecord> getSource(Model model) throws IOException {
         checkCorrect();
-        Stream<FileRecord> modelstream = (source == FILTERSOURCE.ALLFILES ? model.getFileRecordSet(ALLFILERECORDS) : model.getFileRecordSet(sourcename)).stream();
-        return modelstream.filter((fr)->true); // ugly fix - otherwise something fails when no application filters defined in chain (confusion between collection creation and lambda creation of stream)
+        Stream<FileRecord> modelstream = (source == FILTERSOURCE.ALLFILES ? model : model.getSet(sourcename)).stream();
+        return modelstream.filter((fr) -> true); // ugly fix - otherwise something fails when no application filters defined in chain (confusion between collection creation and lambda creation of stream)
     }
 }

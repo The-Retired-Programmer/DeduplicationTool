@@ -15,58 +15,82 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.support;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class Model extends HashMap<String,FileRecordSet> {
+public class Model extends FileRecordSet implements StorableSet {
 
     private final String modelname;
-    private final MatchRecord matchrecord = new MatchRecord();
-    
-    public static final String ALLFILERECORDS = "*";
+    private final Parameters parameters;
+    private final List<FileRecordSet> matchrecords = new ArrayList<>();
+    private final Map<String, FileRecordSet> sets = new HashMap<>();
 
-    public Model(String modelname) {
+    public Model(String modelname, Parameters parameters) {
         this.modelname = modelname;
+        this.parameters = parameters;
     }
-    
-    public void load(Parameters parameters) throws IOException {
-        AllFileRecordSet allfilerecords = new AllFileRecordSet();
-        allfilerecords.load(modelname, parameters);
-        put(ALLFILERECORDS, allfilerecords);
-    }
-    
-    public void save(Parameters parameters) throws IOException {
-       ((AllFileRecordSet)getFileRecordSet(ALLFILERECORDS)).save(modelname, parameters);
-    }
-    
-    public int getFileRecordSetSize(String key) throws IOException{
-        return getFileRecordSet(key).size();
-    }
-    
-    public FileRecordSet getFileRecordSet(String key) throws IOException {
-        FileRecordSet lfr = get(key);
-        if ( lfr != null) {
-            return lfr;
-        }
-        throw new IOException("unknown FileRecordSet: "+key);
-    }
-    
-    public void checkValidFileRecordSet(String key) throws IOException {
-        if (!containsKey(key)) {
-            throw new IOException("FileRecordSet "+key+ " does not exist");
+
+    @Override
+    public void load() throws IOException {
+        try ( BufferedReader rdr = FileManager.openModelReader(modelname, parameters)) {
+            String line = rdr.readLine();
+            while (line != null) {
+                add(new FileRecord(line));
+                line = rdr.readLine();
+            }
         }
     }
-    
-    public MatchRecord getMatchRecord() {
-        return matchrecord;
+
+    public void load(String line) throws IOException {
+        add(new FileRecord(line));
+    }
+
+    @Override
+    public void save() throws IOException {
+        try ( PrintWriter wtr = FileManager.openModelWriter(modelname, parameters)) {
+            for (FileRecord fr : this) {
+                wtr.println(fr.toString());
+            }
+        }
+    }
+
+    public int getSetSize(String key) throws IOException {
+        return getSet(key).size();
+    }
+
+    public FileRecordSet getSet(String key) throws IOException {
+        FileRecordSet frs = sets.get(key);
+        if (frs != null) {
+            return frs;
+        }
+        throw new IOException("unknown FileRecordSet: " + key);
+    }
+
+    public void checkValidSet(String key) throws IOException {
+        if (!sets.containsKey(key)) {
+            throw new IOException("FileRecordSet " + key + " does not exist");
+        }
     }
     
-    public void clearMatchRecord() {
-        matchrecord.clear();
+    public void putSet(String key, FileRecordSet value) {
+        sets.put(key, value);
+    }
+
+    public List<FileRecordSet> getMatchRecords() {
+        return matchrecords;
+    }
+
+    public void clearMatchRecords() {
+        matchrecords.clear();
     }
     
-    public void addToMatchRecord(FileRecordSet match) {
-        matchrecord.add(match);
+    public void addToMatchRecords(FileRecordSet match) {
+        matchrecords.add(match);
     }
 
     public String getModelName() {

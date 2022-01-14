@@ -22,7 +22,6 @@ import java.util.Iterator;
 import java.util.List;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
-import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class Matching extends Command {
 
@@ -104,14 +103,8 @@ public class Matching extends Command {
 
     @SuppressWarnings("null")
     private void findMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
-        model.clearMatchRecord();
-        FileRecordSet allrecords=null;
-        try {
-            allrecords = model.getFileRecordSet(ALLFILERECORDS);
-        } catch (IOException ex) {
-            // squash the IOException which actually will never happen
-        }
-        List<FileRecord> orderedset = new ArrayList<>(allrecords);
+        model.clearMatchRecords();
+        List<FileRecord> orderedset = new ArrayList<>(model);
         orderedset.sort(comparefilerecords);
         if (orderedset.size() > 1) {
             Iterator<FileRecord> iterator = orderedset.iterator();
@@ -132,12 +125,12 @@ public class Matching extends Command {
                 } else {
                     if (induplicateset) {
                         induplicateset = false;
-                        model.addToMatchRecord(rec);
+                        model.addToMatchRecords(rec);
                     }
                     current = possibleduplicate;
                 }
             }
         }
-        System.out.println("MATCHES: type=" + matchtype.description + ", number of matches=" + model.getMatchRecord().size());
+        System.out.println("MATCHES: type=" + matchtype.description + ", number of matches=" + model.getMatchRecords().size());
     }
 }

@@ -97,8 +97,8 @@ public class FRFConsumer {
                 System.out.println("Reset " + size + " records");
             }
             case NAMEDFILTER -> {
-                model.put(consumername, new FileRecordSet(stream.collect(Collectors.toSet())));
-                System.out.println("Collected " + model.getFileRecordSetSize(consumername) + " records");
+                model.putSet(consumername, new FileRecordSet(stream.collect(Collectors.toSet())));
+                System.out.println("Collected " + model.getSetSize(consumername) + " records");
             }
             case EXPORT -> {
                 long recordcounter;

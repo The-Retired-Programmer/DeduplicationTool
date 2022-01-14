@@ -94,7 +94,7 @@ public class Commands {
                     System.out.println("filter <filterchanindescriptor> display - run the filter chanin to create a subset of input filerecordset, display it on SYSOUT");
                     System.out.println("filter <filterchanindescriptor> output <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is same as used in load signature)");
                     System.out.println("filter <filterchanindescriptor> report <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is easier for human reading)");
-                    System.out.println("export match as <filename> - export the match results to filename");
+                    System.out.println("export as <filename> - export the match results to filename");
                     System.out.println("newmodel <modelname> - save the current model and open a new model");
                     System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
                     System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");

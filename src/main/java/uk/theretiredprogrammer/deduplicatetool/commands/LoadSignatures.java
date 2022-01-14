@@ -21,20 +21,16 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import uk.theretiredprogrammer.deduplicatetool.support.AllFileRecordSet;
-import static uk.theretiredprogrammer.deduplicatetool.support.Model.ALLFILERECORDS;
 
 public class LoadSignatures extends Command {
-    
+
     private int filecount = 0;
-    private AllFileRecordSet allfilerecords;
-    
+
     @Override
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(3);
         File path = checkSyntaxAndFILEPATH("loadsignatures", "from");
         filecount = 0;
-        allfilerecords = (AllFileRecordSet) model.getFileRecordSet(ALLFILERECORDS);
         load(path);
         System.out.println(Integer.toString(filecount) + " signature files loaded");
         return Command.ActionResult.COMPLETEDCONTINUE;
@@ -62,7 +58,7 @@ public class LoadSignatures extends Command {
         try ( Reader rdr = new FileReader(f);  BufferedReader brdr = new BufferedReader(rdr)) {
             String line = brdr.readLine();
             while (line != null) {
-                allfilerecords.load(tag + '§' + line);
+                model.load(tag + '§' + line);
                 line = brdr.readLine();
             }
         }

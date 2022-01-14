@@ -15,16 +15,12 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.support;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.io.IOException;
 
-public class MatchRecord extends HashSet<FileRecordSet> {
-
-    public MatchRecord() {
-        super();
-    }
+public interface StorableSet {
     
-    public MatchRecord(Collection a) {
-        super(a);
-    }
+    public void load() throws IOException;
+    
+    public void save() throws IOException;
+    
 }

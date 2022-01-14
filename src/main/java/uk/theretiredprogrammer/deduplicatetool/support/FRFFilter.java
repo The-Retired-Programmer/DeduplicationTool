@@ -131,7 +131,7 @@ public class FRFFilter {
         }
 
         public FileRecordSet get(Model model) throws IOException {
-            return model.getFileRecordSet(key);
+            return model.getSet(key);
         }
     }
 

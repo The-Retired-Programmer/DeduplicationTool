@@ -26,21 +26,15 @@ public class Export extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(4, 5);
+        checkTokenCount(3);
         checkSyntax("export");
-        String option = checkOptionsSyntax("match");
-        switch (option) {
-            case "match" -> {
-                checkTokenCount(4);
-                File path = checkSyntaxAndFILEPATH("as");
-                try ( PrintWriter wtr = FileManager.openWriter(path)) {
-                    for (FileRecordSet frs : model.getMatchRecord()) {
-                        for (FileRecord fr : frs) {
-                            wtr.println(fr.toString());
-                        }
-                        wtr.println();
-                    }
+        File path = checkSyntaxAndFILEPATH("as");
+        try ( PrintWriter wtr = FileManager.openWriter(path)) {
+            for (FileRecordSet frs : model.getMatchRecords()) {
+                for (FileRecord fr : frs) {
+                    wtr.println(fr.toReportString());
                 }
+                wtr.println();
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
