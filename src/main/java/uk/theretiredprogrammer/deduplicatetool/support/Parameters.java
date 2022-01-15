@@ -37,7 +37,7 @@ public class Parameters {
             throw new IOException("Missing end substitute bracket - " + s);
         }
         String pname = s.substring(nextsubat + 1, endsubat);
-        String pvalue = parameters.get(pname);
+        String pvalue = substitute(get(pname));
         if (pvalue == null) {
             throw new IOException("Parameter " + pname + " is undefined - " + s);
         }
@@ -47,6 +47,7 @@ public class Parameters {
     }
 
     public String get(String pname) throws IOException {
+        pname = pname.toLowerCase();
         if (!parameters.containsKey(pname)) {
             throw new IOException("Parameter " + pname + " does not exist");
         }
@@ -58,9 +59,12 @@ public class Parameters {
     }
 
     public void set(String pname, String pvalue) throws IOException {
-        if (parameters.containsKey(pname)) {
-            throw new IOException("Attempting to redefine parameter " + pname + "=" + pvalue);
-        }
+        pname = pname.toLowerCase();
+        parameters.put(pname, substitute(pvalue));
+    }
+    
+    public void def(String pname, String pvalue) throws IOException {
+        pname = pname.toLowerCase();
         parameters.put(pname, pvalue);
     }
 }

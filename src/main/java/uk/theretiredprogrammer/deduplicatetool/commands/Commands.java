@@ -37,6 +37,7 @@ public class Commands {
         map.put("extractsignatures", new ExtractSignatures());
         map.put("list", new ListCommand());
         map.put("set", new SetCommand());
+        map.put("def", new DefCommand());
         map.put("match", new Match());
         map.put("run", new RunCommand());
         map.put("filter", new Filter());
@@ -104,7 +105,8 @@ public class Commands {
                     System.out.println("list aliases - display all aliases");
                     System.out.println("list alias <name> - display alias");
                     System.out.println("list commands - list all commands");
-                    System.out.println("set <parameter> <value> - define a parameter and set its value");
+                    System.out.println("set <parameter> <value> - define a parameter and set its value (with substition)");
+                    System.out.println("def <parameter> <value> - define a parameter and set its value (without substitution)");
                     System.out.println("alias <name>  is <command> - create a command alias - note <command> should be quoted if it contains spaces");
                     System.out.println("<aliasname> - execute a command alias");
                     System.out.println("run <command file> - run a command file (located in the model data folder)");
@@ -124,6 +126,18 @@ public class Commands {
             String name = checkSyntaxAndLowercaseNAME("set");
             String val = checkSyntaxAndNAME();
             model.parameters.set(name, val);
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+    
+    private class DefCommand extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(3);
+            String name = checkSyntaxAndLowercaseNAME("def");
+            String val = checkSyntaxAndNAMENoSubstitutes();
+            model.parameters.def(name, val);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }

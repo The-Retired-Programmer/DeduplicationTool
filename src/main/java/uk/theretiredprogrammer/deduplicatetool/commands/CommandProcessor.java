@@ -34,10 +34,10 @@ public class CommandProcessor {
 
     public CommandProcessor(String modelname) throws IOException {
         parameters = new Parameters();
-        parameters.set("iCLOUD", "/Users/richard/Library/Mobile Documents/com~apple~CloudDocs/");
         parameters.set("RL", "/Users/richard/");
         parameters.set("JEL", "/Users/janielinsdale/");
-        parameters.set("MODEL", "/Users/richard/DeduplicateTool-Data/" + modelname + "/");
+        parameters.set("iCLOUD", "?RL?Library/Mobile Documents/com~apple~CloudDocs/");
+        parameters.set("MODEL", "?RL?DeduplicateTool-Data/" + modelname + "/");
         this.commands = new Commands(this);
         this.model = new Model(modelname, parameters);
         model.load();

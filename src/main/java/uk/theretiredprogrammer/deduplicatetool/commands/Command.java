@@ -44,6 +44,14 @@ public abstract class Command {
 
     private String nextToken() throws IOException {
         if (tokenreader.hasNext()) {
+            return model.parameters.substitute(tokenreader.next());
+        } else {
+            throw new IOException("Command reader failure");
+        }
+    }
+    
+    private String nextTokenNoSubstitutes() throws IOException {
+        if (tokenreader.hasNext()) {
             return tokenreader.next();
         } else {
             throw new IOException("Command reader failure");
@@ -76,7 +84,7 @@ public abstract class Command {
 
     protected File checkSyntaxAndFILEPATH(String... syntax) throws IOException {
         checkSyntax(syntax);
-        return new File(model.parameters.substitute(nextToken()));
+        return new File(nextToken());
     }
 
     protected String checkSyntaxAndNAME(String... syntax) throws IOException {
@@ -87,6 +95,11 @@ public abstract class Command {
     protected String checkSyntaxAndLowercaseNAME(String... syntax) throws IOException {
         checkSyntax(syntax);
         return nextToken().toLowerCase();
+    }
+    
+    protected String checkSyntaxAndNAMENoSubstitutes(String... syntax) throws IOException {
+        checkSyntax(syntax);
+        return nextTokenNoSubstitutes();
     }
 
     protected String checkOptionsSyntax(String... syntax) throws IOException {
