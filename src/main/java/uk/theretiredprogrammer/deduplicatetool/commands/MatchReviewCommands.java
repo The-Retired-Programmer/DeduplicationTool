@@ -46,7 +46,6 @@ public class MatchReviewCommands {
         map.put("8", new SelectFileRecord(7));
         map.put("9", new SelectFileRecord(8));
         map.put("?", new DisplayMatch());
-        map.put("set", new SetCommand());
         //
         matches = model.getMatchRecords();
         if (matches.isEmpty()) {
@@ -96,26 +95,14 @@ public class MatchReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-            checkTokenCount(3);
-            String name = checkSyntaxAndLowercaseNAME("set");
-            String option = checkOptionsSyntax("tag", "path", "parentpath", "filename", "filenameext",
-                    "digest", "filesize", "filestatus", "isfilestatusupdateable");
-            switch (option){
-                case "tag" -> model.parameters.set(name,currentSelectedFileRecord.tag);
-                case "path" -> model.parameters.set(name,currentSelectedFileRecord.path);
-                case "parentpath" -> model.parameters.set(name,currentSelectedFileRecord.parentpath);
-                case "filename" -> model.parameters.set(name,currentSelectedFileRecord.filename);
-                case "filenameext"-> model.parameters.set(name,currentSelectedFileRecord.filenameext);
-                case "digest" -> model.parameters.set(name, currentSelectedFileRecord.digest);
-                case "filesize" -> model.parameters.set(name, Integer.toString(currentSelectedFileRecord.filesize));
-                case "filestatus" -> model.parameters.set(name, currentSelectedFileRecord.filestatus.toString());
-                case "isfilestatusupdateable" -> model.parameters.set(name, 
-                        currentSelectedFileRecord.filestatus.isProcessable()?"True":"False");
-            }
+//            checkTokenCount(3);
+//            String name = checkSyntaxAndLowercaseNAME("set");
+//            String val = checkSyntaxAndNAME();
+//            parameters.set(name, val);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
-    
+
     private class First extends Command {
 
         @Override
