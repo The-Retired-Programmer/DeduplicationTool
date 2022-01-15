@@ -16,6 +16,7 @@
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,15 +36,15 @@ public class MatchReviewCommands {
         map.put(">>", new Last());
         map.put(">", new Next());
         map.put("<", new Previous());
-        map.put("1", new SelectFileRecord(1));
-        map.put("2", new SelectFileRecord(2));
-        map.put("3", new SelectFileRecord(3));
-        map.put("4", new SelectFileRecord(4));
-        map.put("5", new SelectFileRecord(5));
-        map.put("6", new SelectFileRecord(6));
-        map.put("7", new SelectFileRecord(7));
-        map.put("8", new SelectFileRecord(8));
-        map.put("9", new SelectFileRecord(9));
+        map.put("1", new SelectFileRecord(0));
+        map.put("2", new SelectFileRecord(1));
+        map.put("3", new SelectFileRecord(2));
+        map.put("4", new SelectFileRecord(3));
+        map.put("5", new SelectFileRecord(4));
+        map.put("6", new SelectFileRecord(5));
+        map.put("7", new SelectFileRecord(6));
+        map.put("8", new SelectFileRecord(7));
+        map.put("9", new SelectFileRecord(8));
         map.put("?", new DisplayMatch());
         //
         matches = model.getMatchRecords();
@@ -57,16 +58,28 @@ public class MatchReviewCommands {
     private final List<FileRecordSet> matches;
     private int indexFRS;
     private int sizeFRS;
-    private FileRecordSet currentMatchFileRecordSet;
-
+    private List<FileRecord> currentMatchFileRecords;
+    private int indexFR;
+    private int sizeFR;
+    private FileRecord currentSelectedFileRecord;
+    
     private void moveToNewMatchFRS() {
-        currentMatchFileRecordSet = matches.get(indexFRS);
+        currentMatchFileRecords = new ArrayList<>(matches.get(indexFRS));
+        indexFR=0;
+        sizeFR= currentMatchFileRecords.size();
+        currentSelectedFileRecord = currentMatchFileRecords.get(0);
         displayMatch();
     }
 
     private void first() {
         indexFRS = 0;
         moveToNewMatchFRS();
+    }
+    
+    private void displayMatch() {
+        for (FileRecord fr : currentMatchFileRecords) {
+            System.out.println(fr.toReportString());
+        }
     }
 
     private class Quit extends Command {
@@ -134,20 +147,6 @@ public class MatchReviewCommands {
         }
     }
 
-    private class SelectFileRecord extends Command {
-
-        private final int recno;
-
-        public SelectFileRecord(int recno) {
-            this.recno = recno;
-        }
-
-        @Override
-        public ActionResult execute() throws IOException {
-            return ActionResult.COMPLETEDCONTINUE;
-        }
-    }
-
     private class DisplayMatch extends Command {
 
         @Override
@@ -156,11 +155,24 @@ public class MatchReviewCommands {
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
+    
+    private class SelectFileRecord extends Command {
 
-    private void displayMatch() {
-        for (FileRecord fr : currentMatchFileRecordSet) {
-            System.out.println(fr.toReportString());
+        private final int index;
+
+        public SelectFileRecord(int index) {
+            this.index = index;
+        }
+
+        @Override
+        public ActionResult execute() throws IOException {
+            if (index<sizeFR && index >= 0) {
+                indexFR = index;
+                currentSelectedFileRecord = currentMatchFileRecords.get(indexFR);
+                System.out.println(currentSelectedFileRecord.toReportString());
+            }
+            
+            return ActionResult.COMPLETEDCONTINUE;
         }
     }
-
 }
