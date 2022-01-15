@@ -15,11 +15,14 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
 
@@ -44,7 +47,7 @@ public class Match extends Command {
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(2, 3);
         checkSyntax("match");
-        String subcommand = checkOptionsSyntax("create", "review");
+        String subcommand = checkOptionsSyntax("create", "review", "report");
         switch (subcommand) {
             case "create" -> {
                 checkTokenCount(3);
@@ -74,6 +77,19 @@ public class Match extends Command {
                 checkTokenCount(2);
                 MatchReviewCommandProcessor reviewCP = new MatchReviewCommandProcessor(model);
                 reviewCP.executeSYSIN();
+            }
+            case "report" -> {
+                checkTokenCount(3);
+                File path = checkSyntaxAndFILEPATH();
+                try ( PrintWriter wtr = FileManager.openWriter(path)) {
+                    for (FileRecordSet frs : model.getMatchRecords()) {
+                        for (FileRecord fr : frs) {
+                            wtr.println(fr.toReportString());
+                        }
+                        wtr.println();
+                    }
+                }
+                
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;

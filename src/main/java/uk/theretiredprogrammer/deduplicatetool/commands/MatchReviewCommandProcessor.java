@@ -34,7 +34,7 @@ public class MatchReviewCommandProcessor {
     }
 
     public void executeSYSIN() throws IOException {
-        String line = SYSIN.readLine("¿");
+        String line = SYSIN.readLine(">>");
         while (line != null) {
             boolean quit = false;
             try {
@@ -42,7 +42,7 @@ public class MatchReviewCommandProcessor {
             } catch (IOException ex) {
                 System.err.println(ex.getMessage());
             }
-            line = quit ? null : SYSIN.readLine("¿");
+            line = quit ? null : SYSIN.readLine(">>");
         }
     }
 
@@ -61,7 +61,7 @@ public class MatchReviewCommandProcessor {
         if (c == null) {
             throw new IOException("unknown command found: " + commandline);
         }
-        c.attach(model, model.parameters);
+        c.attach(model);
         c.setTokens(tokens);
         return c.execute();
     }

@@ -32,7 +32,6 @@ public class Commands {
         this.commandprocessor = commandprocessor;
         map.put("quit", new QuitCommand());
         map.put("alias", new AliasCommand());
-        map.put("export", new Export());
         map.put("newmodel", new NewModel());
         map.put("loadsignatures", new LoadSignatures());
         map.put("extractsignatures", new ExtractSignatures());
@@ -66,14 +65,14 @@ public class Commands {
             switch (option) {
                 case "parameters" -> {
                     checkTokenCount(2);
-                    for (Entry<String, String> e : parameters.getAll()) {
+                    for (Entry<String, String> e : model.parameters.getAll()) {
                         System.out.println(e.getKey() + " = " + e.getValue());
                     }
                 }
                 case "parameter" -> {
                     checkTokenCount(3);
                     String name = checkSyntaxAndLowercaseNAME();
-                    System.out.println(name + " = " + parameters.get(name));
+                    System.out.println(name + " = " + model.parameters.get(name));
                 }
                 case "aliases" -> {
                     checkTokenCount(2);
@@ -94,11 +93,12 @@ public class Commands {
                     System.out.println("filter <filterchanindescriptor> display - run the filter chanin to create a subset of input filerecordset, display it on SYSOUT");
                     System.out.println("filter <filterchanindescriptor> output <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is same as used in load signature)");
                     System.out.println("filter <filterchanindescriptor> report <filepath> - run the filter chanin to create a subset of input filerecordset, output it to the filepath (format is easier for human reading)");
-                    System.out.println("export as <filename> - export the match results to filename");
                     System.out.println("newmodel <modelname> - save the current model and open a new model");
                     System.out.println("loadsignatures from <file or folder> - loads sets of signature files");
                     System.out.println("extractsignatures from <file or folder> [as|replace] signaturesetkey");
-                    System.out.println("match by [filepath|digest|filename|filepath-digest-filesize|digest-filesize|filename-digest-filesize]");
+                    System.out.println("match create [filepath|digest|filename|filepath-digest-filesize|digest-filesize|filename-digest-filesize]");
+                    System.out.println("match review");
+                    System.out.println("match report <filename>");
                     System.out.println("list parameters - display all parameter values");
                     System.out.println("list parameter <name> - display parameter value");
                     System.out.println("list aliases - display all aliases");
@@ -123,7 +123,7 @@ public class Commands {
             checkTokenCount(3);
             String name = checkSyntaxAndLowercaseNAME("set");
             String val = checkSyntaxAndNAME();
-            parameters.set(name, val);
+            model.parameters.set(name, val);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }

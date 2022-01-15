@@ -59,7 +59,7 @@ public class CommandProcessor {
 
     public void executeSYSIN() throws IOException {
         
-        String line = SYSIN.readLine("?");
+        String line = SYSIN.readLine(">");
         while (line != null) {
             boolean quit = false;
             try {
@@ -67,7 +67,7 @@ public class CommandProcessor {
             } catch (IOException ex) {
                 System.err.println(ex.getMessage());
             }
-            line = quit ? null : SYSIN.readLine("?");
+            line = quit ? null : SYSIN.readLine(">");
         }
         model.save();
     }
@@ -91,7 +91,7 @@ public class CommandProcessor {
             }
             return execute(aliasString);
         }
-        c.attach(model, parameters);
+        c.attach(model);
         c.setTokens(tokens);
         return c.execute();
     }

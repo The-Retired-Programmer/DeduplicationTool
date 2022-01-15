@@ -20,12 +20,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ListIterator;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
-import uk.theretiredprogrammer.deduplicatetool.support.Parameters;
 
 public abstract class Command {
 
     protected Model model;
-    protected Parameters parameters;
     protected List<String> tokens;
     private ListIterator<String> tokenreader;
 
@@ -33,9 +31,8 @@ public abstract class Command {
         COMPLETEDCONTINUE, COMPLETEDQUIT
     }
 
-    public void attach(Model model, Parameters parameters) {
+    public void attach(Model model) {
         this.model = model;
-        this.parameters = parameters;
     }
 
     public abstract ActionResult execute() throws IOException;
@@ -79,7 +76,7 @@ public abstract class Command {
 
     protected File checkSyntaxAndFILEPATH(String... syntax) throws IOException {
         checkSyntax(syntax);
-        return new File(parameters.substitute(nextToken()));
+        return new File(model.parameters.substitute(nextToken()));
     }
 
     protected String checkSyntaxAndNAME(String... syntax) throws IOException {
