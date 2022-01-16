@@ -23,23 +23,18 @@ import java.util.stream.Stream;
 
 public class FRFFilter {
     
-    private final static BiPredicate<FileRecord,String> predicate_null = (FileRecord fr, String p) -> true;
-    private final static BiPredicate<FileRecord,String> predicate_only_unset = (FileRecord fr, String p) -> fr.filestatus.isProcessable();
+    private final static BiPredicate<FileRecord,String> predicate_processed = (FileRecord fr, String p) -> !fr.filestatus.isProcessable();
+    private final static BiPredicate<FileRecord,String> predicate_unprocessed = (FileRecord fr, String p) -> fr.filestatus.isProcessable();
     private final static BiPredicate<FileRecord,String> predicate_equal_parentpath = (FileRecord fr, String p) -> fr.parentpath.equals(p);
     private final static BiPredicate<FileRecord,String> predicate_equal_tag = (FileRecord fr, String p) -> fr.tag.equals(p);
-    private final static BiPredicate<FileRecord, String> predicate_equal_tag_and_parentpath = (FileRecord fr, String p) -> {
-        String[] split = p.split(",");
-        return split[0].trim().equals(fr.tag) && split[1].trim().equals(fr.parentpath);
-    };
     private final static BiPredicate<FileRecord, FileRecordSet> predicate_filenameext_exists_in = (FileRecord fr, FileRecordSet comparelist)
         -> !comparelist.stream().noneMatch((cf) -> fr.filenameext.equals(cf.filenameext));       
 
     private static final FilterDefinition[] filterDefinitions = new FilterDefinition[]{
-        new FilterDefinition("null", 0, false, predicate_null),
-        new FilterDefinition("only-unset", 0, false, predicate_only_unset),
-        new FilterDefinition("equal-parentpath", 1, false, predicate_equal_parentpath),
-        new FilterDefinition("equal-tag", 1, false, predicate_equal_tag),
-        new FilterDefinition("equal-tag-and-parentpath", 2, false, predicate_equal_tag_and_parentpath),
+        new FilterDefinition("processed", 0, false, predicate_processed),
+        new FilterDefinition("unprocessed", 0, false, predicate_unprocessed),
+        new FilterDefinition("parentpath-is", 1, false, predicate_equal_parentpath),
+        new FilterDefinition("tag-is", 1, false, predicate_equal_tag),
         new FilterDefinition("filenameext-exists-in", 1, true, predicate_filenameext_exists_in)
     };
 
