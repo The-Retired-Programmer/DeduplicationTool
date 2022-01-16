@@ -46,6 +46,7 @@ public class MatchReviewCommands {
         map.put("8", new SelectFileRecord(7));
         map.put("9", new SelectFileRecord(8));
         map.put("?", new DisplayMatch());
+        map.put("set", new SetCommand());
         //
         matches = model.getMatchRecords();
         if (matches.isEmpty()) {
@@ -95,10 +96,23 @@ public class MatchReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-//            checkTokenCount(3);
-//            String name = checkSyntaxAndLowercaseNAME("set");
-//            String val = checkSyntaxAndNAME();
-//            parameters.set(name, val);
+            checkTokenCount(3);
+            String name = checkSyntaxAndLowercaseNAME("set");
+            String property = checkOptionsSyntax("tag", "filepath", "parentpath", "filename",
+                    "filenameext", "digest", "filesize", "filestatus", "filestatus-isprocessable");
+            String value = null;
+            switch (property) {
+                case "tag" -> value = currentSelectedFileRecord.tag;
+                case "filepath" -> value = currentSelectedFileRecord.path;
+                case "parentpath" -> value = currentSelectedFileRecord.parentpath;
+                case "filename" -> value = currentSelectedFileRecord.filename;
+                case "filenameext" -> value = currentSelectedFileRecord.filenameext;
+                case "digest" -> value = currentSelectedFileRecord.digest;
+                case "filesize" -> value = Integer.toString(currentSelectedFileRecord.filesize);
+                case "filestatus" -> value = currentSelectedFileRecord.filestatus.toString();
+                case "filestatus-isprocessable" -> value = Boolean.toString(currentSelectedFileRecord.filestatus.isProcessable());
+            }
+            model.parameters.set(name, value);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
