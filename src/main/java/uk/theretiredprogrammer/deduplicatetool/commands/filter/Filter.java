@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.theretiredprogrammer.deduplicatetool.commands;
+package uk.theretiredprogrammer.deduplicatetool.commands.filter;
 
 import java.io.IOException;
+import uk.theretiredprogrammer.deduplicatetool.commands.Command;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecordFilter;
 
 public class Filter extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(3,4);
-        FileRecordFilter filter = FileRecordFilter.parse(model, checkSyntaxAndNAME("filter"));
+        checkTokenCount(3, 4);
+        FileRecordFilter filter = new FileRecordFilter();
+        filter.parse(model, checkSyntaxAndNAME("filter"));
         String finalaction = checkOptionsSyntax("as", "set", "reset", "output", "report", "display");
         switch (finalaction) {
             case "as" -> {
                 checkTokenCount(4);
-                filter.setFinalActionIsFilter(checkSyntaxAndLowercaseNAME());
+                filter.setFinalActionIsAs(checkSyntaxAndLowercaseNAME());
             }
             case "set" -> {
                 checkTokenCount(4);
                 FileStatus[] allstatus = FileStatus.values();
                 String options = "";
-                for (FileStatus fs : allstatus ) {
-                    options += fs.toString()+",";
+                for (FileStatus fs : allstatus) {
+                    options += fs.toString() + ",";
                 }
-                options = options.substring(0,options.length()-1).toLowerCase();
+                options = options.substring(0, options.length() - 1).toLowerCase();
                 filter.setFinalActionIsSet(checkOptionsSyntax(options.split(",")).toUpperCase());
             }
             case "reset" -> {
@@ -47,7 +48,7 @@ public class Filter extends Command {
             }
             case "output" -> {
                 checkTokenCount(4);
-                filter.setFinalActionIsExport(checkSyntaxAndFILEPATH());
+                filter.setFinalActionIsOutput(checkSyntaxAndFILEPATH());
             }
             case "report" -> {
                 checkTokenCount(4);

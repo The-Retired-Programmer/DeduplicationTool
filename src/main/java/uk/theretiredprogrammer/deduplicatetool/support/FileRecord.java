@@ -21,7 +21,7 @@ import java.io.IOException;
 public class FileRecord {
     
     public static enum FileStatus {
-        NONE(true), DUPLICATE_IGNORE(false), TO_BE_DELETED(false), FILE_DELETED(false), DUPLICATE_CANDIDATE(false);
+        NONE(true), DUPLICATE_IGNORE(false), TO_BE_DELETED(false), FILE_DELETED(false), DUPLICATE_CANDIDATE(false), DELETE_CANDIDATE(true);
         
         public final boolean processable;
 
@@ -77,6 +77,10 @@ public class FileRecord {
     
     public String getFilename() {
         return filename;
+    }
+    
+    public String getFilenameExt() {
+        return filenameext;
     }
     
     public int getFilesize() {

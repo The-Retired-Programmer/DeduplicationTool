@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.theretiredprogrammer.deduplicatetool.support;
+package uk.theretiredprogrammer.deduplicatetool.commands.filter;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,28 +21,27 @@ import java.io.PrintWriter;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class FRFConsumer {
 
     private static enum FILTERCONSUMER {
-        UNDEFINED, SET, RESET, NAMEDFILTER, EXPORT, REPORT, DISPLAY
-    }
-
-    public static FRFConsumer parse(String filterstring) throws IOException {
-        FRFConsumer filter = new FRFConsumer();
-        return filter;
+        UNDEFINED, SET, RESET, AS, OUTPUT, REPORT, DISPLAY
     }
 
     private FILTERCONSUMER consumer = FILTERCONSUMER.UNDEFINED;
     private String consumername;
     private File consumerpath;
 
-    private FRFConsumer() {
+    public FRFConsumer() {
     }
 
-    void setFinalActionIsFilter(String name) {
-        consumer = FILTERCONSUMER.NAMEDFILTER;
+    void setFinalActionIsAs(String name) {
+        consumer = FILTERCONSUMER.AS;
         consumername = name;
     }
 
@@ -50,13 +49,13 @@ public class FRFConsumer {
         consumer = FILTERCONSUMER.SET;
         consumername = name;
     }
-    
+
     void setFinalActionIsReset() {
         consumer = FILTERCONSUMER.RESET;
     }
 
-    void setFinalActionIsExport(File path) {
-        consumer = FILTERCONSUMER.EXPORT;
+    void setFinalActionIsOutput(File path) {
+        consumer = FILTERCONSUMER.OUTPUT;
         consumerpath = path;
     }
 
@@ -75,7 +74,7 @@ public class FRFConsumer {
         }
     }
 
-    public void ConsumerAction(Model model, Stream<FileRecord> stream) throws IOException {
+    public void streamProcess(Model model, Stream<FileRecord> stream) throws IOException {
         checkCorrect();
         switch (consumer) {
             case SET -> {
@@ -96,11 +95,11 @@ public class FRFConsumer {
                 long size = stream.map(resetStatus).count();
                 System.out.println("Reset " + size + " records");
             }
-            case NAMEDFILTER -> {
+            case AS -> {
                 model.putSet(consumername, new FileRecordSet(stream.collect(Collectors.toSet())));
                 System.out.println("Collected " + model.getSetSize(consumername) + " records");
             }
-            case EXPORT -> {
+            case OUTPUT -> {
                 long recordcounter;
                 try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
                     recordcounter = stream.map((fr) -> {

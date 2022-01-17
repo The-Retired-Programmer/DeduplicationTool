@@ -15,6 +15,7 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.commands;
 
+import uk.theretiredprogrammer.deduplicatetool.commands.filter.Filter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class Commands {
         map.put("match", new Match());
         map.put("run", new RunCommand());
         map.put("filter", new Filter());
+        map.put("compare", new Compare());
         //
         alias.put("q", "quit");
         alias.put("end", "quit");

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package uk.theretiredprogrammer.deduplicatetool.support;
+package uk.theretiredprogrammer.deduplicatetool.commands.filter;
 
 import java.io.IOException;
 import java.util.stream.Stream;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
+import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class FRFSource {
 
@@ -52,6 +54,6 @@ public class FRFSource {
     public Stream<FileRecord> getSource(Model model) throws IOException {
         checkCorrect();
         Stream<FileRecord> modelstream = (source == FILTERSOURCE.ALLFILES ? model : model.getSet(sourcename)).stream();
-        return modelstream.filter((fr) -> true); // ugly fix - otherwise something fails when no application filters defined in chain (confusion between collection creation and lambda creation of stream)
+        return modelstream.filter((fr) -> true); // ugly fix - otherwise something fails when no application filters defined in chain (confusion between collection creation and lambda creation of stream??)
     }
 }
