@@ -101,7 +101,7 @@ public class MatchReviewCommands {
             checkTokenCount(3);
             String name = checkSyntaxAndLowercaseNAME("set");
             String property = checkOptionsSyntax("tag", "filepath", "parentpath", "filename",
-                    "filenameext", "digest", "filesize", "filestatus", "filestatus-isprocessable");
+                    "filenameext", "digest", "filesize", "filestatus");
             String value = null;
             switch (property) {
                 case "tag" ->
@@ -120,8 +120,6 @@ public class MatchReviewCommands {
                     value = Integer.toString(currentSelectedFileRecord.filesize);
                 case "filestatus" ->
                     value = currentSelectedFileRecord.filestatus.toString();
-                case "filestatus-isprocessable" ->
-                    value = Boolean.toString(currentSelectedFileRecord.filestatus.isProcessable());
             }
             model.parameters.set(name, value);
             return ActionResult.COMPLETEDCONTINUE;
@@ -136,7 +134,7 @@ public class MatchReviewCommands {
             checkTokenCount(5);
             checkSyntax("filter", "using");
             String property = checkOptionsSyntax("tag", "filepath", "parentpath", "filename",
-                    "filenameext", "digest", "filesize", "filestatus", "filestatus-isprocessable");
+                    "filenameext", "digest", "filesize", "filestatus");
             String name = checkSyntaxAndLowercaseNAME("as");
             FileRecordFilter filter = new FileRecordFilter();
             String filterchain = switch (property) {

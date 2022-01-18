@@ -46,20 +46,30 @@ public class FileRecordFilter {
 
     private FilterItem getFilterItem(String command) throws IOException {
         return switch (command) {
-            case "processed" ->
-                new ProcessedFilter();
-            case "unprocessed" ->
-                new UnProcessedFilter();
-            case "sort" -> new SortFunction();
-            case "parentpath-is" -> new ParentpathIsFilter();
-            case "tag-is" -> new TagIsFilter();
-            case "filenameext-exists-in" -> new FilenameextExistsInSetFilter();
-            case "filepath-is" -> new FilepathIsFilter();
-            case "filename-is" -> new FilenameIsFilter();
-            case "filenameext-is" -> new FilenameextIsFilter();
-            case "digest-is" -> new DigestIsFilter();
-            case "filesize-is" -> new FilesizeIsFilter();
-            case "filestatus-is" -> new FileStatusIsFilter();
+            case "locked" ->
+                new LockedFilter();
+            case "unlocked" ->
+                new UnLockedFilter();
+            case "sort" ->
+                new SortFunction();
+            case "parentpath-is" ->
+                new ParentpathIsFilter();
+            case "tag-is" ->
+                new TagIsFilter();
+            case "filenameext-exists-in" ->
+                new FilenameextExistsInSetFilter();
+            case "filepath-is" ->
+                new FilepathIsFilter();
+            case "filename-is" ->
+                new FilenameIsFilter();
+            case "filenameext-is" ->
+                new FilenameextIsFilter();
+            case "digest-is" ->
+                new DigestIsFilter();
+            case "filesize-is" ->
+                new FilesizeIsFilter();
+            case "filestatus-is" ->
+                new FileStatusIsFilter();
             default ->
                 throw new IOException("Filter chain item " + command + " does not exist");
         };
@@ -83,7 +93,7 @@ public class FileRecordFilter {
     }
 
     public void setAction(String action, String name) {
-        consumer.setAction(action,name);
+        consumer.setAction(action, name);
     }
 
     void setAction(String action) {
@@ -102,7 +112,7 @@ public class FileRecordFilter {
     public void executeFilter(Model model) throws IOException {
         checkCorrect();
         Stream<FileRecord> stream = source.getSource(model);
-        for (FilterItem fi : filters){
+        for (FilterItem fi : filters) {
             stream = fi.streamProcess(stream, model);
         }
         consumer.streamProcess(model, stream);

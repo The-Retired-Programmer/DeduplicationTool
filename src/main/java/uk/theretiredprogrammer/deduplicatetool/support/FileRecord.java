@@ -20,20 +20,29 @@ import java.io.IOException;
 
 public class FileRecord {
     
-    private static final int MAXFILESSTATUSSTRINGLENGTH = 19;
+    private static final int MAXFILESSTATUSSTRINGLENGTH = 16;
     private static final int TABPOINT = MAXFILESSTATUSSTRINGLENGTH + 4;// minimum of 4 spaces tabbing
     
     public static enum FileStatus {
-        NONE(true), DUPLICATE_IGNORE(false), TO_BE_DELETED(false), FILE_DELETED(false), DUPLICATE_CANDIDATE(false), DELETE_CANDIDATE(true);
+        NONE(false, true), DUPLICATE_IGNORE(true, false),
+        PHOTOS_MASTER(true, true), PROPOSED_MASTER(true, true),
+        TO_BE_DELETED(true, false), FILE_DELETED(true, false),
+        CHECK_IS_WANTED(false, false);
         
-        public final boolean processable;
-
-        private FileStatus(boolean processable) {
-            this.processable = processable;
+        private boolean locked;
+        private boolean useinmatching;
+        
+        private FileStatus(boolean locked, boolean useinmatching) {
+            this.locked = locked;
+            this.useinmatching = useinmatching;
         }
         
-        public boolean isProcessable() {
-            return processable;
+        public boolean isLocked() {
+            return locked;
+        }
+        
+        public boolean isUseInMatching(){
+            return useinmatching;
         }
     }
     

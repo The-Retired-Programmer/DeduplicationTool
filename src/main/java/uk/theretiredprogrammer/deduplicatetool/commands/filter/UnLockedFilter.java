@@ -20,9 +20,9 @@ import java.util.stream.Stream;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
-public class UnProcessedFilter implements FilterItem {
+public class UnLockedFilter implements FilterItem {
 
-    public UnProcessedFilter() {
+    public UnLockedFilter() {
     }
 
     @Override
@@ -34,6 +34,6 @@ public class UnProcessedFilter implements FilterItem {
 
     @Override
     public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) {
-        return fromStream.filter((fr) -> fr.filestatus.isProcessable());
+        return fromStream.filter((fr) -> !fr.filestatus.isLocked());
     }
 }
