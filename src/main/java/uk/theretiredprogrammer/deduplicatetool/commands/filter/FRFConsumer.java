@@ -29,65 +29,47 @@ import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class FRFConsumer {
 
-    private static enum FILTERCONSUMER {
-        UNDEFINED, SET, RESET, AS, OUTPUT, REPORT, DISPLAY
-    }
-
-    private FILTERCONSUMER consumer = FILTERCONSUMER.UNDEFINED;
-    private String consumername;
-    private File consumerpath;
+    private String action ="";
+    private String name;
+    private File path;
 
     public FRFConsumer() {
     }
 
-    void setFinalActionIsAs(String name) {
-        consumer = FILTERCONSUMER.AS;
-        consumername = name;
+    void setAction(String action, String name) {
+        this.action = action;
+        this.name = name;
     }
 
-    void setFinalActionIsSet(String name) {
-        consumer = FILTERCONSUMER.SET;
-        consumername = name;
+    void setAction(String action) {
+        this.action = action;
     }
 
-    void setFinalActionIsReset() {
-        consumer = FILTERCONSUMER.RESET;
+    void setAction(String action, File path) {
+        this.action = action;
+        this.path = path;
     }
-
-    void setFinalActionIsOutput(File path) {
-        consumer = FILTERCONSUMER.OUTPUT;
-        consumerpath = path;
-    }
-
-    void setFinalActionIsReport(File path) {
-        consumer = FILTERCONSUMER.REPORT;
-        consumerpath = path;
-    }
-
-    void setFinalActionIsDisplay() {
-        consumer = FILTERCONSUMER.DISPLAY;
-    }
-
+    
     void checkCorrect() throws IOException {
-        if (consumer == FILTERCONSUMER.UNDEFINED) {
-            throw new IOException("Bad Filter chain definition");
+        if (action.isBlank()) {
+            throw new IOException("Bad Filter chain definition - no final action defined");
         }
     }
 
     public void streamProcess(Model model, Stream<FileRecord> stream) throws IOException {
         checkCorrect();
-        switch (consumer) {
-            case SET -> {
+        switch (action) {
+            case "set" -> {
                 long size = stream.filter((fr) -> {
                     if (fr.filestatus == FileStatus.NONE) {
-                        fr.filestatus = FileStatus.valueOf(consumername);
+                        fr.filestatus = FileStatus.valueOf(name);
                         return true;
                     }
                     return false;
                 }).count();
                 System.out.println("Successfully Updated " + size + " records");
             }
-            case RESET -> {
+            case "reset" -> {
                 Function<FileRecord, FileRecord> resetStatus = (fr) -> {
                     fr.filestatus = FileStatus.NONE;
                     return fr;
@@ -95,13 +77,13 @@ public class FRFConsumer {
                 long size = stream.map(resetStatus).count();
                 System.out.println("Reset " + size + " records");
             }
-            case AS -> {
-                model.putSet(consumername, new FileRecordSet(stream.collect(Collectors.toSet())));
-                System.out.println("Collected " + model.getSetSize(consumername) + " records");
+            case "as" -> {
+                model.putSet(name, new FileRecordSet(stream.collect(Collectors.toSet())));
+                System.out.println("Collected " + model.getSetSize(name) + " records");
             }
-            case OUTPUT -> {
+            case "output" -> {
                 long recordcounter;
-                try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
+                try ( PrintWriter pwtr = FileManager.openWriter(path)) {
                     recordcounter = stream.map((fr) -> {
                         pwtr.println(fr.toString());
                         return fr;
@@ -109,16 +91,16 @@ public class FRFConsumer {
                 }
                 System.out.println("Exported " + recordcounter + " records");
             }
-            case DISPLAY -> {
+            case "display" -> {
                 long recordcounter = stream.map((fr) -> {
                     System.out.println(fr.toReportString());
                     return fr;
                 }).count();
                 System.out.println("Displayed " + recordcounter + " records");
             }
-            case REPORT -> {
+            case "report" -> {
                 long recordcounter;
-                try ( PrintWriter pwtr = FileManager.openWriter(consumerpath)) {
+                try ( PrintWriter pwtr = FileManager.openWriter(path)) {
                     recordcounter = stream.map((fr) -> {
                         pwtr.println(fr.toReportString());
                         return fr;
@@ -126,6 +108,27 @@ public class FRFConsumer {
                 }
                 System.out.println("Reported " + recordcounter + " records");
             }
+            case "list" -> {
+                long recordcounter;
+                try ( PrintWriter pwtr = FileManager.openWriter(path)) {
+                    recordcounter = stream.map((fr) -> {
+                        pwtr.println(fr.toListString());
+                        return fr;
+                    }).count();
+                }
+                System.out.println("Listed " + recordcounter + " records");
+            }
+            case "list2" -> {
+                long recordcounter;
+                try ( PrintWriter pwtr = FileManager.openWriter(path)) {
+                    recordcounter = stream.map((fr) -> {
+                        pwtr.println(fr.toList2String());
+                        return fr;
+                    }).count();
+                }
+                System.out.println("Listed " + recordcounter + " records");
+            }
+
         }
     }
 }

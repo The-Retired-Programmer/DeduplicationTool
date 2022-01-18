@@ -20,6 +20,9 @@ import java.io.IOException;
 
 public class FileRecord {
     
+    private static final int MAXFILESSTATUSSTRINGLENGTH = 19;
+    private static final int TABPOINT = MAXFILESSTATUSSTRINGLENGTH + 4;// minimum of 4 spaces tabbing
+    
     public static enum FileStatus {
         NONE(true), DUPLICATE_IGNORE(false), TO_BE_DELETED(false), FILE_DELETED(false), DUPLICATE_CANDIDATE(false), DELETE_CANDIDATE(true);
         
@@ -102,5 +105,23 @@ public class FileRecord {
                 "    filesize="+filesize+
                 "    tag="+tag+
                 "    digest="+digest;
+    }
+    
+    public String toListString() {
+        return path;
+    }
+    
+    public String toList2String() {
+        StringBuilder sb = new StringBuilder();
+        String s = filestatus.toString();
+        if (s.length()  > MAXFILESSTATUSSTRINGLENGTH ) {
+            s = s.substring(0, MAXFILESSTATUSSTRINGLENGTH );
+        }
+        sb.append(s);
+        for (int i = 0; i< TABPOINT-s.length();i++) {
+            sb.append(' ');
+        }
+        sb.append(path);
+        return sb.toString();
     }
 }

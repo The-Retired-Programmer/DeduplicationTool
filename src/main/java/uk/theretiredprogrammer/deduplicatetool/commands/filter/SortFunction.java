@@ -23,18 +23,25 @@ import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class SortFunction implements FilterItem {
 
+    private String parameter;
+
     public SortFunction() {
     }
 
     @Override
     public void parseParameters(String command, String parameter) throws IOException {
-        if (parameter != null && !parameter.isBlank()) {
-            throw new IOException("parameter defined for " + command + " which not required");
+       if (parameter == null || parameter.isBlank()) {
+            throw new IOException("no parameter defined for " + command);
         }
+        this.parameter = parameter;
     }
 
     @Override
-    public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) {
-        return fromStream.sorted(Comparator.comparing(FileRecord::getFilepath));
+    public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) throws IOException {
+        return switch (parameter) {
+            case "filepath" -> fromStream.sorted(Comparator.comparing(FileRecord::getFilepath));
+            case "filestatus-filepath" -> fromStream.sorted(Comparator.comparing(FileRecord::getFileStatus).thenComparing(FileRecord::getFilepath));
+            default -> throw new IOException("Unknow sort parameter");
+        };
     }
 }

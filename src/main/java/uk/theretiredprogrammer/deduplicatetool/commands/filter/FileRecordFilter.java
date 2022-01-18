@@ -76,28 +76,16 @@ public class FileRecordFilter {
         return filterstring.substring(p + 1, q).trim();
     }
 
-    public void setFinalActionIsAs(String name) {
-        consumer.setFinalActionIsAs(name);
+    void setAction(String action, String name) {
+        consumer.setAction(action,name);
     }
 
-    public void setFinalActionIsSet(String name) {
-        consumer.setFinalActionIsSet(name);
+    void setAction(String action) {
+        consumer.setAction(action);
     }
 
-    public void setFinalActionIsReset() {
-        consumer.setFinalActionIsReset();
-    }
-
-    public void setFinalActionIsOutput(File path) {
-        consumer.setFinalActionIsOutput(path);
-    }
-
-    public void setFinalActionIsReport(File path) {
-        consumer.setFinalActionIsReport(path);
-    }
-
-    public void setFinalActionIsDisplay() {
-        consumer.setFinalActionIsDisplay();
+    void setAction(String action, File path) {
+        consumer.setAction(action, path);
     }
 
     void checkCorrect() throws IOException {
