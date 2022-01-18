@@ -54,8 +54,14 @@ public class FileRecordFilter {
             case "parentpath-is" -> new ParentpathIsFilter();
             case "tag-is" -> new TagIsFilter();
             case "filenameext-exists-in" -> new FilenameextExistsInSetFilter();
+            case "filepath-is" -> new FilepathIsFilter();
+            case "filename-is" -> new FilenameIsFilter();
+            case "filenameext-is" -> new FilenameextIsFilter();
+            case "digest-is" -> new DigestIsFilter();
+            case "filesize-is" -> new FilesizeIsFilter();
+            case "filestatus-is" -> new FileStatusIsFilter();
             default ->
-                throw new IOException("Filter command " + command + " does not exist");
+                throw new IOException("Filter chain item " + command + " does not exist");
         };
     }
 
@@ -76,7 +82,7 @@ public class FileRecordFilter {
         return filterstring.substring(p + 1, q).trim();
     }
 
-    void setAction(String action, String name) {
+    public void setAction(String action, String name) {
         consumer.setAction(action,name);
     }
 

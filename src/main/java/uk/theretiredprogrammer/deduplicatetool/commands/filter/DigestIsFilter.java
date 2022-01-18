@@ -16,32 +16,27 @@
 package uk.theretiredprogrammer.deduplicatetool.commands.filter;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.stream.Stream;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
-public class SortFunction implements FilterItem {
+public class DigestIsFilter implements FilterItem {
 
     private String parameter;
 
-    public SortFunction() {
+    public DigestIsFilter() {
     }
 
     @Override
     public void parseParameters(String command, String parameter) throws IOException {
-       if (parameter == null || parameter.isBlank()) {
+        if (parameter == null || parameter.isBlank()) {
             throw new IOException("no parameter defined for " + command);
         }
         this.parameter = parameter;
     }
 
     @Override
-    public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) throws IOException {
-        return switch (parameter) {
-            case "filepath" -> fromStream.sorted(Comparator.comparing(FileRecord::getFilepath));
-            case "filestatus-filepath" -> fromStream.sorted(Comparator.comparing(FileRecord::getFileStatus).thenComparing(FileRecord::getFilepath));
-            default -> throw new IOException("Unknown sort parameter");
-        };
+    public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) {
+        return fromStream.filter((fr) -> fr.digest.equals(parameter));
     }
 }

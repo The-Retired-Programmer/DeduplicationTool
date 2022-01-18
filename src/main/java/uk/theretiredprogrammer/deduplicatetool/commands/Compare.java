@@ -25,19 +25,23 @@ public class Compare extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(7);
+        checkTokenCount(8);
         String pp1 = checkSyntaxAndNAME("compare");
         String pp2 = checkSyntaxAndNAME();
         String onlypp1 = checkSyntaxAndNAME("create");
-        String pp1pp2 = checkSyntaxAndNAME();
+        String bothpp1 = checkSyntaxAndNAME();
+        String bothpp2 = checkSyntaxAndNAME();
         String onlypp2 = checkSyntaxAndNAME();
         //
         model.putSet(onlypp1, findOnly(model.getSet(pp1),model.getSet(pp2)));
-        model.putSet(pp1pp2, findinBoth(model.getSet(pp1),model.getSet(pp2)));
+        model.putSet(bothpp1, findinBoth(model.getSet(pp1),model.getSet(pp2)));
+        model.putSet(bothpp2, findinBoth(model.getSet(pp2),model.getSet(pp1)));
         model.putSet(onlypp2, findOnly(model.getSet(pp2),model.getSet(pp1)));
         //
-        System.out.println("COMPARE: "+model.getSetSize(pp1pp2)+" common files; "
+        System.out.println("COMPARE: "
                 +model.getSetSize(onlypp1)+" files only in "+pp1+"; "
+                +model.getSetSize(bothpp1)+" matching files in "+pp1+"; "
+                +model.getSetSize(bothpp2)+" matching files in "+pp2+"; "
                 +model.getSetSize(onlypp2)+" files only in "+pp2);
         return Command.ActionResult.COMPLETEDCONTINUE;
     }

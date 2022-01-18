@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult;
 import static uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult.COMPLETEDQUIT;
+import uk.theretiredprogrammer.deduplicatetool.commands.filter.FileRecordFilter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
@@ -47,6 +48,7 @@ public class MatchReviewCommands {
         map.put("9", new SelectFileRecord(8));
         map.put("?", new DisplayMatch());
         map.put("set", new SetCommand());
+        map.put("filter", new FilterCommand());
         //
         matches = model.getMatchRecords();
         if (matches.isEmpty()) {
@@ -63,11 +65,11 @@ public class MatchReviewCommands {
     private int indexFR;
     private int sizeFR;
     private FileRecord currentSelectedFileRecord;
-    
+
     private void moveToNewMatchFRS() {
         currentMatchFileRecords = new ArrayList<>(matches.get(indexFRS));
-        indexFR=0;
-        sizeFR= currentMatchFileRecords.size();
+        indexFR = 0;
+        sizeFR = currentMatchFileRecords.size();
         currentSelectedFileRecord = currentMatchFileRecords.get(0);
         displayMatch();
     }
@@ -76,7 +78,7 @@ public class MatchReviewCommands {
         indexFRS = 0;
         moveToNewMatchFRS();
     }
-    
+
     private void displayMatch() {
         for (FileRecord fr : currentMatchFileRecords) {
             System.out.println(fr.toReportString());
@@ -102,17 +104,64 @@ public class MatchReviewCommands {
                     "filenameext", "digest", "filesize", "filestatus", "filestatus-isprocessable");
             String value = null;
             switch (property) {
-                case "tag" -> value = currentSelectedFileRecord.tag;
-                case "filepath" -> value = currentSelectedFileRecord.path;
-                case "parentpath" -> value = currentSelectedFileRecord.parentpath;
-                case "filename" -> value = currentSelectedFileRecord.filename;
-                case "filenameext" -> value = currentSelectedFileRecord.filenameext;
-                case "digest" -> value = currentSelectedFileRecord.digest;
-                case "filesize" -> value = Integer.toString(currentSelectedFileRecord.filesize);
-                case "filestatus" -> value = currentSelectedFileRecord.filestatus.toString();
-                case "filestatus-isprocessable" -> value = Boolean.toString(currentSelectedFileRecord.filestatus.isProcessable());
+                case "tag" ->
+                    value = currentSelectedFileRecord.tag;
+                case "filepath" ->
+                    value = currentSelectedFileRecord.path;
+                case "parentpath" ->
+                    value = currentSelectedFileRecord.parentpath;
+                case "filename" ->
+                    value = currentSelectedFileRecord.filename;
+                case "filenameext" ->
+                    value = currentSelectedFileRecord.filenameext;
+                case "digest" ->
+                    value = currentSelectedFileRecord.digest;
+                case "filesize" ->
+                    value = Integer.toString(currentSelectedFileRecord.filesize);
+                case "filestatus" ->
+                    value = currentSelectedFileRecord.filestatus.toString();
+                case "filestatus-isprocessable" ->
+                    value = Boolean.toString(currentSelectedFileRecord.filestatus.isProcessable());
             }
             model.parameters.set(name, value);
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    // convenient class - to avoid extracting a parameter and then having to enter a filter command to create a FileRecordSet subset
+    private class FilterCommand extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(5);
+            checkSyntax("filter", "using");
+            String property = checkOptionsSyntax("tag", "filepath", "parentpath", "filename",
+                    "filenameext", "digest", "filesize", "filestatus", "filestatus-isprocessable");
+            String name = checkSyntaxAndLowercaseNAME("as");
+            FileRecordFilter filter = new FileRecordFilter();
+            String filterchain = switch (property) {
+                case "tag" ->
+                    "*>>tag-is(" + currentSelectedFileRecord.tag + ")";
+                case "filepath" ->
+                    "*>>filepath-is(" + currentSelectedFileRecord.path + ")";
+                case "parentpath" ->
+                    "*>>parentpath-is(" + currentSelectedFileRecord.parentpath + ")";
+                case "filename" ->
+                    "*>>filename-is(" + currentSelectedFileRecord.filename + ")";
+                case "filenameext" ->
+                    "*>>filenameext-is(" + currentSelectedFileRecord.filenameext + ")";
+                case "digest" ->
+                    "*>>digest-is(" + currentSelectedFileRecord.digest + ")";
+                case "filesize" ->
+                    "*>>filesize-is(" + Integer.toString(currentSelectedFileRecord.filesize) + ")";
+                case "filestatus" ->
+                    "*>>filestatus-is(" + currentSelectedFileRecord.filestatus.toString() + ")";
+                default ->
+                    throw new IOException("unknown option " + property + "in Filter Command (Match Review)");
+            };
+            filter.parse(model, filterchain);
+            filter.setAction("as", name);
+            filter.executeFilter(model);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -169,7 +218,7 @@ public class MatchReviewCommands {
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
-    
+
     private class SelectFileRecord extends Command {
 
         private final int index;
@@ -180,12 +229,12 @@ public class MatchReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-            if (index<sizeFR && index >= 0) {
+            if (index < sizeFR && index >= 0) {
                 indexFR = index;
                 currentSelectedFileRecord = currentMatchFileRecords.get(indexFR);
                 System.out.println(currentSelectedFileRecord.toReportString());
             }
-            
+
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
