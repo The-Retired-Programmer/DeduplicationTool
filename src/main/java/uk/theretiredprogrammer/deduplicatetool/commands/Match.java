@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
@@ -89,12 +90,12 @@ public class Match extends Command {
                         wtr.println();
                     }
                 }
-                
+
             }
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
-    
+
     private void findMatchesUsingFilePath_Digest_Filesize() {
         findMatches(MatchType.PATH_DIGEST_SIZE, Comparator.comparing(FileRecord::getFilepath).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize));
     }
@@ -122,7 +123,8 @@ public class Match extends Command {
     @SuppressWarnings("null")
     private void findMatches(MatchType matchtype, Comparator<FileRecord> comparefilerecords) {
         model.clearMatchRecords();
-        List<FileRecord> orderedset = new ArrayList<>(model);
+        List<FileRecord> set = new ArrayList<>(model);
+        var orderedset = set.stream().filter((fr) -> fr.filestatus.isUseInMatching()).collect(Collectors.toList());
         orderedset.sort(comparefilerecords);
         if (orderedset.size() > 1) {
             Iterator<FileRecord> iterator = orderedset.iterator();
