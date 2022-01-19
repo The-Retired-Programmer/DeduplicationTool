@@ -48,7 +48,7 @@ public class Match extends Command {
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(2, 3);
         checkSyntax("match");
-        String subcommand = checkOptionsSyntax("create", "review", "report");
+        String subcommand = checkOptionsSyntax("create", "review", "report", "mark");
         switch (subcommand) {
             case "create" -> {
                 checkTokenCount(3);
@@ -92,6 +92,12 @@ public class Match extends Command {
                 }
 
             }
+            case "mark" -> {
+                checkTokenCount(2);
+                mark();
+            }
+            
+          
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
@@ -152,5 +158,43 @@ public class Match extends Command {
             }
         }
         System.out.println("MATCHES: type=" + matchtype.description + ", number of matches=" + model.getMatchRecords().size());
+    }
+    
+    @SuppressWarnings("null")
+    private void mark() {
+        Comparator comparator = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
+        List<FileRecord> orderedset = new ArrayList<>(model);
+        orderedset.sort(comparator);
+        if (!orderedset.isEmpty()) {
+            Iterator<FileRecord> iterator = orderedset.iterator();
+            FileRecord current = iterator.next();
+            boolean induplicateset = false;
+            while (iterator.hasNext()) {
+                FileRecord possibleduplicate = iterator.next();
+                if (comparator.compare(current, possibleduplicate) == 0) {
+                    if (induplicateset) {
+                        possibleduplicate.hasMatch = true;
+                    } else {
+                        current.hasMatch = true;
+                        possibleduplicate.hasMatch = true;
+                        induplicateset = true;
+                    }
+                } else {
+                    if (induplicateset) {
+                        induplicateset = false;
+                    }
+                    current = possibleduplicate;
+                }
+            }
+        }
+        System.out.println("Mark: number of records matched=" + getMatchedCount()+"; number of records unmatched="+getUnmatchedCount());
+    }
+    
+    private long getMatchedCount() {
+        return model.stream().filter((fr) -> fr.hasMatch).count();
+    }
+    
+    private long getUnmatchedCount() {
+        return model.stream().filter((fr) -> !fr.hasMatch).count();
     }
 }

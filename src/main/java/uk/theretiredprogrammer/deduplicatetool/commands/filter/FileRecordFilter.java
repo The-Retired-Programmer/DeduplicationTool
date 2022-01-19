@@ -70,6 +70,12 @@ public class FileRecordFilter {
                 new FilesizeIsFilter();
             case "filestatus-is" ->
                 new FileStatusIsFilter();
+            case "filestatus-isnot" ->
+                new FileStatusIsnotFilter();
+            case "matched" ->
+                new HasMatchFilter();
+            case "unmatched" ->
+                new IsUnmatchedFilter();
             default ->
                 throw new IOException("Filter chain item " + command + " does not exist");
         };

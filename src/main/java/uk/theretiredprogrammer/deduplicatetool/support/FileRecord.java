@@ -29,8 +29,8 @@ public class FileRecord {
         TO_BE_DELETED(true, false), FILE_DELETED(true, false),
         CHECK_IS_WANTED(false, false);
         
-        private boolean locked;
-        private boolean useinmatching;
+        private final boolean locked;
+        private final boolean useinmatching;
         
         private FileStatus(boolean locked, boolean useinmatching) {
             this.locked = locked;
@@ -54,10 +54,11 @@ public class FileRecord {
     public final String digest;
     public final int filesize;
     public FileStatus filestatus;
+    public boolean hasMatch;
     
     public FileRecord(String serialisedrecord) throws IOException {
         String[] serialisedrecordparts = serialisedrecord.split("§");
-        if ((serialisedrecordparts.length == 4) || (serialisedrecordparts.length == 5)) {
+        if ((serialisedrecordparts.length == 4) || (serialisedrecordparts.length == 5) || (serialisedrecordparts.length == 6)) {
             // common for old and new formats
             tag = serialisedrecordparts[0];
             path = serialisedrecordparts[1];
@@ -74,6 +75,7 @@ public class FileRecord {
             parentpath = f.getParent();
             // handle this differently for various file versions
             filestatus = serialisedrecordparts.length == 5 ? FileStatus.valueOf(serialisedrecordparts[4]) : FileStatus.NONE;
+            hasMatch = serialisedrecordparts.length == 6 ? Boolean.parseBoolean(serialisedrecordparts[5]) : false;
         } else {
             throw new IOException("Badly formatted data source: " + serialisedrecord);
         }
@@ -103,13 +105,18 @@ public class FileRecord {
         return filestatus;
     }
     
+    public boolean hasMatch() {
+        return hasMatch;
+    }
+    
     @Override
     public String toString() {
-        return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize)+"§"+filestatus;
+        return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize)+"§"+filestatus+"§"+hasMatch;
     }
     
     public String toReportString() {
         return path+'\n'+
+                "    hasMatch="+hasMatch+
                 "    status="+filestatus+
                 "    filesize="+filesize+
                 "    tag="+tag+
