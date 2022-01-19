@@ -46,7 +46,7 @@ public class Compare extends Command {
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
     
-    Comparator<FileRecord> compareforequal = Comparator.comparing(FileRecord::getFilenameExt).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
+    Comparator<FileRecord> compareforequal = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
 
     private FileRecordSet findOnly(FileRecordSet set, FileRecordSet compareset) {
         FileRecordSet only = new FileRecordSet();
