@@ -74,8 +74,8 @@ public class FileRecord {
             }
             parentpath = f.getParent();
             // handle this differently for various file versions
-            filestatus = serialisedrecordparts.length == 5 ? FileStatus.valueOf(serialisedrecordparts[4]) : FileStatus.NONE;
-            hasMatch = serialisedrecordparts.length == 6 ? Boolean.parseBoolean(serialisedrecordparts[5]) : false;
+            filestatus = serialisedrecordparts.length > 4 ? FileStatus.valueOf(serialisedrecordparts[4]) : FileStatus.NONE;
+            hasMatch = serialisedrecordparts.length >5 ? Boolean.parseBoolean(serialisedrecordparts[5]) : false;
         } else {
             throw new IOException("Badly formatted data source: " + serialisedrecord);
         }
@@ -129,15 +129,19 @@ public class FileRecord {
     
     public String toList2String() {
         StringBuilder sb = new StringBuilder();
-        String s = filestatus.toString();
-        if (s.length()  > MAXFILESSTATUSSTRINGLENGTH ) {
-            s = s.substring(0, MAXFILESSTATUSSTRINGLENGTH );
-        }
-        sb.append(s);
-        for (int i = 0; i< TABPOINT-s.length();i++) {
-            sb.append(' ');
-        }
+        appendStringAndPadding(sb, filestatus.toString(), MAXFILESSTATUSSTRINGLENGTH, TABPOINT);
+        appendStringAndPadding(sb, hasMatch?"Has Matches":"UnMatched", 11, 14);
         sb.append(path);
         return sb.toString();
+    }
+    
+    private void appendStringAndPadding(StringBuilder sb, String s, int maxstringlength, int fieldsize) {
+        if (s.length()  > maxstringlength ) {
+            s = s.substring(0, maxstringlength );
+        }
+        sb.append(s);
+        for (int i = 0; i< fieldsize-s.length();i++) {
+            sb.append(' ');
+        }
     }
 }
