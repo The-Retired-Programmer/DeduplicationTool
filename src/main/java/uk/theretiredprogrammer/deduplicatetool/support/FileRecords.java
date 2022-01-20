@@ -15,16 +15,16 @@
  */
 package uk.theretiredprogrammer.deduplicatetool.support;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 
-public class FileRecordSet extends HashSet<FileRecord> {
+public class FileRecords extends ArrayList<FileRecord> {
     
-    public FileRecordSet() {
+    public FileRecords() {
         super();
     }
     
-    public FileRecordSet(Collection<FileRecord> a) {
+    public FileRecords(Collection<FileRecord> a) {
         super(a);
     }
     

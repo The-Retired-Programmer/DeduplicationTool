@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 
 public class Compare extends Command {
 
@@ -48,8 +48,8 @@ public class Compare extends Command {
     
     Comparator<FileRecord> compareforequal = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
 
-    private FileRecordSet findOnly(FileRecordSet set, FileRecordSet compareset) {
-        FileRecordSet only = new FileRecordSet();
+    private FileRecords findOnly(FileRecords set, FileRecords compareset) {
+        FileRecords only = new FileRecords();
         Iterator<FileRecord> iterator = set.iterator();
         while (iterator.hasNext()){
             FileRecord current = iterator.next();
@@ -60,7 +60,7 @@ public class Compare extends Command {
         return only;
     }
     
-    private boolean existsIn(FileRecordSet set, FileRecord tofind) {
+    private boolean existsIn(FileRecords set, FileRecord tofind) {
         Iterator<FileRecord> iterator = set.iterator();
         while (iterator.hasNext()){
             FileRecord current = iterator.next();
@@ -71,8 +71,8 @@ public class Compare extends Command {
         return false;
     }
     
-    private FileRecordSet findinBoth(FileRecordSet set1, FileRecordSet set2) {
-        FileRecordSet both = new FileRecordSet();
+    private FileRecords findinBoth(FileRecords set1, FileRecords set2) {
+        FileRecords both = new FileRecords();
         Iterator<FileRecord> iterator = set1.iterator();
         while (iterator.hasNext()){
             FileRecord current = iterator.next();

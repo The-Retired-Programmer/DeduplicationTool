@@ -81,6 +81,10 @@ public class FileRecord {
         }
     }
     
+    public String getParentpath() {
+        return parentpath;
+    }
+    
     public String getFilepath() {
         return path;
     }

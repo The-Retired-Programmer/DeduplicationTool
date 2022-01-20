@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class FRFConsumer {
@@ -78,7 +78,7 @@ public class FRFConsumer {
                 System.out.println("Reset " + size + " records");
             }
             case "as" -> {
-                model.putSet(name, new FileRecordSet(stream.collect(Collectors.toSet())));
+                model.putSet(name, new FileRecords(stream.collect(Collectors.toList())));
                 System.out.println("Collected " + model.getSetSize(name) + " records");
             }
             case "output" -> {

@@ -18,7 +18,7 @@ package uk.theretiredprogrammer.deduplicatetool.commands.filter;
 import java.io.IOException;
 import java.util.stream.Stream;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class FilenameextExistsInSetFilter implements FilterItem {
@@ -38,7 +38,7 @@ public class FilenameextExistsInSetFilter implements FilterItem {
 
     @Override
     public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) throws IOException {
-        FileRecordSet compareset = model.getSet(parameter);
+        FileRecords compareset = model.getSet(parameter);
         return fromStream.filter((fr) -> !compareset.stream().noneMatch((cf) -> fr.filenameext.equals(cf.filenameext)));
     }
 }

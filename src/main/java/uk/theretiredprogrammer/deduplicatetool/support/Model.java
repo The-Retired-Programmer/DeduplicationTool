@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Model extends FileRecordSet implements StorableSet {
+public class Model extends FileRecords implements StorableSet {
 
     private final String modelname;
     public final Parameters parameters;
-    private final List<FileRecordSet> matchrecords = new ArrayList<>();
-    private final Map<String, FileRecordSet> sets = new HashMap<>();
+    private final List<FileRecords> matchrecords = new ArrayList<>();
+    private final Map<String, FileRecords> sets = new HashMap<>();
 
     public Model(String modelname, Parameters parameters) {
         this.modelname = modelname;
@@ -63,8 +63,8 @@ public class Model extends FileRecordSet implements StorableSet {
         return getSet(key).size();
     }
 
-    public FileRecordSet getSet(String key) throws IOException {
-        FileRecordSet frs = sets.get(key);
+    public FileRecords getSet(String key) throws IOException {
+        FileRecords frs = sets.get(key);
         if (frs != null) {
             return frs;
         }
@@ -77,11 +77,11 @@ public class Model extends FileRecordSet implements StorableSet {
         }
     }
     
-    public void putSet(String key, FileRecordSet value) {
+    public void putSet(String key, FileRecords value) {
         sets.put(key, value);
     }
 
-    public List<FileRecordSet> getMatchRecords() {
+    public List<FileRecords> getMatchRecords() {
         return matchrecords;
     }
 
@@ -89,7 +89,7 @@ public class Model extends FileRecordSet implements StorableSet {
         matchrecords.clear();
     }
     
-    public void addToMatchRecords(FileRecordSet match) {
+    public void addToMatchRecords(FileRecords match) {
         matchrecords.add(match);
     }
 

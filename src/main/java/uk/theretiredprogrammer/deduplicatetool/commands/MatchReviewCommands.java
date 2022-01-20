@@ -24,7 +24,7 @@ import uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult;
 import static uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult.COMPLETEDQUIT;
 import uk.theretiredprogrammer.deduplicatetool.commands.filter.FileRecordFilter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
 public class MatchReviewCommands {
@@ -58,7 +58,7 @@ public class MatchReviewCommands {
         first();
     }
 
-    private final List<FileRecordSet> matches;
+    private final List<FileRecords> matches;
     private int indexFRS;
     private int sizeFRS;
     private List<FileRecord> currentMatchFileRecords;

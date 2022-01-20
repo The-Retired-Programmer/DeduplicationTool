@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecordSet;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 
 public class Match extends Command {
 
@@ -48,7 +48,7 @@ public class Match extends Command {
     public Command.ActionResult execute() throws IOException {
         checkTokenCount(2, 3);
         checkSyntax("match");
-        String subcommand = checkOptionsSyntax("create", "review", "report", "mark");
+        String subcommand = checkOptionsSyntax("create", "review", "report", "mark", "parentpathreport");
         switch (subcommand) {
             case "create" -> {
                 checkTokenCount(3);
@@ -79,11 +79,21 @@ public class Match extends Command {
                 MatchReviewCommandProcessor reviewCP = new MatchReviewCommandProcessor(model);
                 reviewCP.executeSYSIN();
             }
+            case "parentpathreport" -> {
+                checkTokenCount(3);
+                File path = checkSyntaxAndFILEPATH();
+
+                try ( PrintWriter wtr = FileManager.openWriter(path)) {
+                    for (ParentCount pc : findmatchedbyparentpathandcount()) {
+                        wtr.println(pc.toString());
+                    }
+                }
+            }
             case "report" -> {
                 checkTokenCount(3);
                 File path = checkSyntaxAndFILEPATH();
                 try ( PrintWriter wtr = FileManager.openWriter(path)) {
-                    for (FileRecordSet frs : model.getMatchRecords()) {
+                    for (FileRecords frs : model.getMatchRecords()) {
                         for (FileRecord fr : frs) {
                             wtr.println(fr.toReportString());
                         }
@@ -96,8 +106,7 @@ public class Match extends Command {
                 checkTokenCount(2);
                 mark();
             }
-            
-          
+
         }
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
@@ -136,14 +145,14 @@ public class Match extends Command {
             Iterator<FileRecord> iterator = orderedset.iterator();
             FileRecord current = iterator.next();
             boolean induplicateset = false;
-            FileRecordSet rec = null;
+            FileRecords rec = null;
             while (iterator.hasNext()) {
                 FileRecord possibleduplicate = iterator.next();
                 if (comparefilerecords.compare(current, possibleduplicate) == 0) {
                     if (induplicateset) {
                         rec.add(possibleduplicate);
                     } else {
-                        rec = new FileRecordSet();
+                        rec = new FileRecords();
                         rec.add(current);
                         rec.add(possibleduplicate);
                         induplicateset = true;
@@ -159,7 +168,7 @@ public class Match extends Command {
         }
         System.out.println("MATCHES: type=" + matchtype.description + ", number of matches=" + model.getMatchRecords().size());
     }
-    
+
     @SuppressWarnings("null")
     private void mark() {
         Comparator comparator = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
@@ -187,14 +196,71 @@ public class Match extends Command {
                 }
             }
         }
-        System.out.println("Mark: number of records matched=" + getMatchedCount()+"; number of records unmatched="+getUnmatchedCount());
+        System.out.println("Mark: number of records matched=" + getMatchedCount() + "; number of records unmatched=" + getUnmatchedCount());
     }
-    
+
     private long getMatchedCount() {
         return model.stream().filter((fr) -> fr.hasMatch).count();
     }
-    
+
     private long getUnmatchedCount() {
         return model.stream().filter((fr) -> !fr.hasMatch).count();
+    }
+
+    private List<ParentCount> findmatchedbyparentpathandcount() {
+        Comparator comparator = Comparator.comparing(FileRecord::getFilepath);
+        Comparator comparator2 = Comparator.comparing(FileRecord::getParentpath);
+        List<ParentCount> parentcounts = new ArrayList<>();
+        List<FileRecord> orderedset = new ArrayList<>(model);
+        orderedset.sort(comparator);
+        if (!orderedset.isEmpty()) {
+            Iterator<FileRecord> iterator = orderedset.iterator();
+            FileRecord current = iterator.next();
+            int insameparentcount = 1;
+            int countmatches = current.hasMatch ? 1 : 0;
+            while (iterator.hasNext()) {
+                FileRecord possiblesameparent = iterator.next();
+                if (comparator2.compare(current, possiblesameparent) == 0) {
+                    insameparentcount++;
+                    if (possiblesameparent.hasMatch) {
+                        countmatches++;
+                    }
+                } else {
+                    parentcounts.add(new ParentCount(current.parentpath, insameparentcount, countmatches));
+                    current = possiblesameparent;
+                    insameparentcount = 1;
+                    countmatches = current.hasMatch ? 1 : 0;
+                }
+            }
+            parentcounts.add(new ParentCount(current.parentpath, insameparentcount, countmatches));
+        }
+        parentcounts.sort(Comparator.comparing(ParentCount::getMatched).thenComparing(ParentCount::getTotal));
+        return parentcounts;
+    }
+
+    private class ParentCount {
+
+        private final String parentpath;
+        private final int total;
+        private final int totalmatched;
+
+        public ParentCount(String parentpath, int total, int totalmatched) {
+            this.parentpath = parentpath;
+            this.total = total;
+            this.totalmatched = totalmatched;
+        }
+        
+        public Integer getMatched(){
+            return totalmatched;
+        }
+        
+        public Integer getTotal() {
+            return total;
+        }
+
+        @Override
+        public String toString() {
+            return parentpath + "§" + total + "§" + totalmatched;
+        }
     }
 }
