@@ -26,11 +26,11 @@ public class Filter extends Command {
         checkTokenCount(3, 4);
         FileRecordFilter filter = new FileRecordFilter();
         filter.parse(model, checkSyntaxAndNAME("filter"));
-        String finalaction = checkOptionsSyntax("as", "set", "reset", "output", "report", "display","list","list2");
+        String finalaction = checkOptionsSyntax("as", "set", "reset", "output", "report", "display", "list", "list2", "count");
         switch (finalaction) {
             case "as" -> {
                 checkTokenCount(4);
-                filter.setAction("as",checkSyntaxAndLowercaseNAME());
+                filter.setAction("as", checkSyntaxAndLowercaseNAME());
             }
             case "set" -> {
                 checkTokenCount(4);
@@ -40,7 +40,7 @@ public class Filter extends Command {
                     options += fs.toString() + ",";
                 }
                 options = options.substring(0, options.length() - 1).toLowerCase();
-                filter.setAction("set",checkOptionsSyntax(options.split(",")).toUpperCase());
+                filter.setAction("set", checkOptionsSyntax(options.split(",")).toUpperCase());
             }
             case "reset" -> {
                 checkTokenCount(3);
@@ -48,11 +48,11 @@ public class Filter extends Command {
             }
             case "output" -> {
                 checkTokenCount(4);
-                filter.setAction("output",checkSyntaxAndFILEPATH());
+                filter.setAction("output", checkSyntaxAndFILEPATH());
             }
             case "report" -> {
                 checkTokenCount(4);
-                filter.setAction("report",checkSyntaxAndFILEPATH());
+                filter.setAction("report", checkSyntaxAndFILEPATH());
             }
             case "display" -> {
                 checkTokenCount(3);
@@ -60,11 +60,15 @@ public class Filter extends Command {
             }
             case "list" -> {
                 checkTokenCount(4);
-                filter.setAction("list",checkSyntaxAndFILEPATH());
+                filter.setAction("list", checkSyntaxAndFILEPATH());
             }
             case "list2" -> {
                 checkTokenCount(4);
-                filter.setAction("list2",checkSyntaxAndFILEPATH());
+                filter.setAction("list2", checkSyntaxAndFILEPATH());
+            }
+            case "count" -> {
+                checkTokenCount(3);
+                filter.setAction("count");
             }
         }
         filter.executeFilter(model);

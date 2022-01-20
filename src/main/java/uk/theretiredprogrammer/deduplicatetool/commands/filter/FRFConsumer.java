@@ -77,6 +77,10 @@ public class FRFConsumer {
                 long size = stream.map(resetStatus).count();
                 System.out.println("Reset " + size + " records");
             }
+            case "count" -> {
+                long recordcounter = stream.count();
+                System.out.println("Counted " + recordcounter + " records");
+            }
             case "as" -> {
                 model.putSet(name, new FileRecords(stream.collect(Collectors.toList())));
                 System.out.println("Collected " + model.getSetSize(name) + " records");
@@ -128,7 +132,6 @@ public class FRFConsumer {
                 }
                 System.out.println("Listed " + recordcounter + " records");
             }
-
         }
     }
 }
