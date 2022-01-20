@@ -25,58 +25,70 @@ public class Compare extends Command {
 
     @Override
     public Command.ActionResult execute() throws IOException {
-        checkTokenCount(8);
+        checkTokenCount(10);
         String pp1 = checkSyntaxAndNAME("compare");
         String pp2 = checkSyntaxAndNAME();
+        checkSyntax("using");
+        String sortoption = checkOptionsSyntax("digest-filesize", "filenameext");
         String onlypp1 = checkSyntaxAndNAME("create");
         String bothpp1 = checkSyntaxAndNAME();
         String bothpp2 = checkSyntaxAndNAME();
         String onlypp2 = checkSyntaxAndNAME();
+        Comparator comparatoroption = switch (sortoption) {
+            case "digest-filesize" ->
+                compareforequaldigestandfilesize;
+            case "filenameext" ->
+                compareforequalfilenameext;
+            default ->
+                throw new IOException("Compare: illegal sort option");
+        };
+
         //
-        model.putSet(onlypp1, findOnly(model.getSet(pp1),model.getSet(pp2)));
-        model.putSet(bothpp1, findinBoth(model.getSet(pp1),model.getSet(pp2)));
-        model.putSet(bothpp2, findinBoth(model.getSet(pp2),model.getSet(pp1)));
-        model.putSet(onlypp2, findOnly(model.getSet(pp2),model.getSet(pp1)));
+        model.putSet(onlypp1, findOnly(model.getSet(pp1), model.getSet(pp2), comparatoroption));
+        model.putSet(bothpp1, findinBoth(model.getSet(pp1), model.getSet(pp2), comparatoroption));
+        model.putSet(bothpp2, findinBoth(model.getSet(pp2), model.getSet(pp1), comparatoroption));
+        model.putSet(onlypp2, findOnly(model.getSet(pp2), model.getSet(pp1), comparatoroption));
         //
         System.out.println("COMPARE: "
-                +model.getSetSize(onlypp1)+" files only in "+pp1+"; "
-                +model.getSetSize(bothpp1)+" matching files in "+pp1+"; "
-                +model.getSetSize(bothpp2)+" matching files in "+pp2+"; "
-                +model.getSetSize(onlypp2)+" files only in "+pp2);
+                + model.getSetSize(onlypp1) + " files only in " + pp1 + "; "
+                + model.getSetSize(bothpp1) + " matching files in " + pp1 + "; "
+                + model.getSetSize(bothpp2) + " matching files in " + pp2 + "; "
+                + model.getSetSize(onlypp2) + " files only in " + pp2);
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
-    
-    Comparator<FileRecord> compareforequal = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
 
-    private FileRecords findOnly(FileRecords set, FileRecords compareset) {
+    Comparator<FileRecord> compareforequaldigestandfilesize = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
+    Comparator<FileRecord> compareforequalfilenameext = Comparator.comparing(FileRecord::getFilenameExt);
+
+    private FileRecords findOnly(FileRecords set, FileRecords compareset, Comparator<FileRecord> comparator) {
         FileRecords only = new FileRecords();
         Iterator<FileRecord> iterator = set.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             FileRecord current = iterator.next();
-            if (!existsIn(compareset, current)) {
+            if (!existsIn(compareset, current, comparator)) {
                 only.add(current);
             }
         }
         return only;
     }
-    
-    private boolean existsIn(FileRecords set, FileRecord tofind) {
+
+    private boolean existsIn(FileRecords set, FileRecord tofind, Comparator<FileRecord> comparator) {
         Iterator<FileRecord> iterator = set.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             FileRecord current = iterator.next();
-            if (compareforequal.compare(current,tofind)==0) {
+            if (comparator.compare(current, tofind) == 0) {
                 return true;
             }
         }
         return false;
     }
-    
-    private FileRecords findinBoth(FileRecords set1, FileRecords set2) {
+
+    private FileRecords findinBoth(FileRecords set1, FileRecords set2, Comparator<FileRecord> comparator) {
         FileRecords both = new FileRecords();
         Iterator<FileRecord> iterator = set1.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             FileRecord current = iterator.next();
-            if (existsIn(set2, current)) {
+            if (existsIn(set2, current, comparator)) {
                 both.add(current);
             }
         }
