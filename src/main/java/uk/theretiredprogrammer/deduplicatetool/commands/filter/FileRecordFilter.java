@@ -62,6 +62,8 @@ public class FileRecordFilter {
                 new FilepathIsFilter();
             case "filename-is" ->
                 new FilenameIsFilter();
+            case "fileext-is" ->
+                new FileExtIsFilter();
             case "filenameext-is" ->
                 new FilenameextIsFilter();
             case "digest-is" ->

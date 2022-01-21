@@ -50,6 +50,7 @@ public class FileRecord {
     public final String path;
     public final String parentpath;
     public final String filename;
+    public final String ext;
     public final String filenameext;
     public final String digest;
     public final int filesize;
@@ -69,8 +70,10 @@ public class FileRecord {
             int dotindex = filenameext.indexOf(".");
             if (dotindex == -1) {
                 filename = filenameext;
+                ext = "";
             } else {
                 filename = filenameext.substring(0, dotindex);
+                ext = filenameext.substring(dotindex+1);
             }
             parentpath = f.getParent();
             // handle this differently for various file versions
@@ -95,6 +98,10 @@ public class FileRecord {
     
     public String getFilename() {
         return filename;
+    }
+    
+    public String getFileExt() {
+        return ext;
     }
     
     public String getFilenameExt() {

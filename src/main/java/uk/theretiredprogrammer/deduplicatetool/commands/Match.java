@@ -177,9 +177,11 @@ public class Match extends Command {
         if (!orderedset.isEmpty()) {
             Iterator<FileRecord> iterator = orderedset.iterator();
             FileRecord current = iterator.next();
+            current.hasMatch = false;
             boolean induplicateset = false;
             while (iterator.hasNext()) {
                 FileRecord possibleduplicate = iterator.next();
+                possibleduplicate.hasMatch = false;
                 if (comparator.compare(current, possibleduplicate) == 0) {
                     if (induplicateset) {
                         possibleduplicate.hasMatch = true;
