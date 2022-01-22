@@ -20,8 +20,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_DIGEST_FILESIZE;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_FILEPATH;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_PARENTPATH;
 
 public class Model extends FileRecords implements StorableSet {
 
@@ -29,6 +34,7 @@ public class Model extends FileRecords implements StorableSet {
     public final Parameters parameters;
     private final List<FileRecords> matchrecords = new ArrayList<>();
     private final Map<String, FileRecords> sets = new HashMap<>();
+    private final Map<String, FileRecords> parentpathfilesets = new LinkedHashMap<>();
 
     public Model(String modelname, Parameters parameters) {
         this.modelname = modelname;
@@ -44,10 +50,65 @@ public class Model extends FileRecords implements StorableSet {
                 line = rdr.readLine();
             }
         }
+        initExtended();
     }
 
     public void load(String line) throws IOException {
         add(new FileRecord(line));
+    }
+    
+    public void initExtended() {
+        this.sort(COMPARE_FILEPATH);
+        updateHasMatch();
+        extractFilerecordsByParentpath();
+    }
+    
+    private void updateHasMatch() {
+        FileRecords orderedset = new FileRecords(this);
+        orderedset.sort(COMPARE_DIGEST_FILESIZE);
+        if (!orderedset.isEmpty()) {
+            Iterator<FileRecord> iterator = orderedset.iterator();
+            FileRecord current = iterator.next();
+            current.hasMatch = false;
+            while (iterator.hasNext()) {
+                FileRecord possibleduplicate = iterator.next();
+                possibleduplicate.hasMatch = false;
+                if (COMPARE_DIGEST_FILESIZE.compare(current, possibleduplicate) == 0) {
+                    current.hasMatch = true;
+                    possibleduplicate.hasMatch = true;
+                } else {
+                    current = possibleduplicate;
+                    current.hasMatch = false;
+                }
+            }
+        }
+    }
+    
+    private void extractFilerecordsByParentpath() {
+        parentpathfilesets.clear();
+        FileRecords orderedset = new FileRecords(this);
+        orderedset.sort(COMPARE_FILEPATH);
+        if (!orderedset.isEmpty()) {
+            Iterator<FileRecord> iterator = orderedset.iterator();
+            FileRecord firstfr = iterator.next();
+            FileRecords sameparentset = new FileRecords();
+            sameparentset.add(firstfr);
+            while (iterator.hasNext()) {
+                FileRecord followingfr = iterator.next();
+                if (COMPARE_PARENTPATH.compare(firstfr, followingfr) == 0) {
+                    sameparentset.add(followingfr);
+                } else {
+                    parentpathfilesets.put(firstfr.parentpath, sameparentset);
+                    firstfr = followingfr;
+                    sameparentset = new FileRecords();
+                    sameparentset.add(firstfr);
+                }
+            }
+            if (!sameparentset.isEmpty()) {
+                parentpathfilesets.put(firstfr.parentpath, sameparentset);
+            }
+        }
+        
     }
 
     @Override
@@ -91,6 +152,10 @@ public class Model extends FileRecords implements StorableSet {
     
     public void addToMatchRecords(FileRecords match) {
         matchrecords.add(match);
+    }
+    
+    public Map<String,FileRecords> getParentsFileRecords() {
+        return parentpathfilesets;
     }
 
     public String getModelName() {

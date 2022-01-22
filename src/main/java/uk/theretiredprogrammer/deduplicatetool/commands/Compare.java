@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.Iterator;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_DIGEST_FILESIZE;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_FILENAMEEXT;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 
 public class Compare extends Command {
@@ -36,9 +38,9 @@ public class Compare extends Command {
         String onlypp2 = checkSyntaxAndNAME();
         Comparator comparatoroption = switch (sortoption) {
             case "digest-filesize" ->
-                compareforequaldigestandfilesize;
+                COMPARE_DIGEST_FILESIZE;
             case "filenameext" ->
-                compareforequalfilenameext;
+                COMPARE_FILENAMEEXT;
             default ->
                 throw new IOException("Compare: illegal sort option");
         };
@@ -56,9 +58,6 @@ public class Compare extends Command {
                 + model.getSetSize(onlypp2) + " files only in " + pp2);
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
-
-    Comparator<FileRecord> compareforequaldigestandfilesize = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
-    Comparator<FileRecord> compareforequalfilenameext = Comparator.comparing(FileRecord::getFilenameExt);
 
     private FileRecords findOnly(FileRecords set, FileRecords compareset, Comparator<FileRecord> comparator) {
         FileRecords only = new FileRecords();

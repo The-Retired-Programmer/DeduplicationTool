@@ -77,6 +77,20 @@ public class FRFConsumer {
                 long size = stream.map(resetStatus).count();
                 System.out.println("Reset " + size + " records");
             }
+            case "hint" -> {
+                long size = stream.filter((fr) -> {
+                    fr.hint = name;
+                    return true;
+                }).count();
+                System.out.println("Successfully Updated " + size + " records");
+            }
+            case "hintappend" -> {
+                long size = stream.filter((fr) -> {
+                    fr.hint = fr.hint +"; "+name;
+                    return true;
+                }).count();
+                System.out.println("Successfully Updated " + size + " records");
+            }
             case "count" -> {
                 long recordcounter = stream.count();
                 System.out.println("Counted " + recordcounter + " records");
@@ -98,6 +112,14 @@ public class FRFConsumer {
             case "display" -> {
                 long recordcounter = stream.map((fr) -> {
                     System.out.println(fr.toReportString());
+                    return fr;
+                }).count();
+                System.out.println("Displayed " + recordcounter + " records");
+            }
+            
+            case "display2" -> {
+                long recordcounter = stream.map((fr) -> {
+                    System.out.println(fr.toList2String());
                     return fr;
                 }).count();
                 System.out.println("Displayed " + recordcounter + " records");

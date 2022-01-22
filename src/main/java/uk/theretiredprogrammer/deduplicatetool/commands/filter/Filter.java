@@ -26,7 +26,7 @@ public class Filter extends Command {
         checkTokenCount(3, 4);
         FileRecordFilter filter = new FileRecordFilter();
         filter.parse(model, checkSyntaxAndNAME("filter"));
-        String finalaction = checkOptionsSyntax("as", "set", "reset", "output", "report", "display", "list", "list2", "count");
+        String finalaction = checkOptionsSyntax("as", "set", "reset", "output", "report", "display", "display2", "list", "list2", "count", "hint","hintappend");
         switch (finalaction) {
             case "as" -> {
                 checkTokenCount(4);
@@ -58,6 +58,10 @@ public class Filter extends Command {
                 checkTokenCount(3);
                 filter.setAction("display");
             }
+            case "display2" -> {
+                checkTokenCount(3);
+                filter.setAction("display2");
+            }
             case "list" -> {
                 checkTokenCount(4);
                 filter.setAction("list", checkSyntaxAndFILEPATH());
@@ -69,6 +73,14 @@ public class Filter extends Command {
             case "count" -> {
                 checkTokenCount(3);
                 filter.setAction("count");
+            }
+            case "hint" -> {
+                checkTokenCount(4);
+                filter.setAction("hint", checkSyntaxAndNAME());
+            }
+            case "hintappend" -> {
+                checkTokenCount(4);
+                filter.setAction("hintappend", checkSyntaxAndNAME());
             }
         }
         filter.executeFilter(model);

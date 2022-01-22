@@ -17,6 +17,7 @@ package uk.theretiredprogrammer.deduplicatetool.support;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 
 public class FileRecord {
     
@@ -27,7 +28,8 @@ public class FileRecord {
         NONE(false, true), DUPLICATE_IGNORE(true, false),
         PHOTOS_MASTER(true, true), PROPOSED_MASTER(true, true),
         TO_BE_DELETED(true, false), FILE_DELETED(true, false),
-        CHECK_IS_WANTED(false, false);
+        CHECK_IS_WANTED(false, false), NOT_AN_IMAGE(true, false),
+        FOLLOW_UP_LATER(true, true), KEEP_BUT_MOVE(true, true);
         
         private final boolean locked;
         private final boolean useinmatching;
@@ -46,6 +48,16 @@ public class FileRecord {
         }
     }
     
+    public static final Comparator<FileRecord> COMPARE_FILEPATH = Comparator.comparing(FileRecord::getFilepath);
+    public static final Comparator<FileRecord> COMPARE_FILENAME = Comparator.comparing(FileRecord::getFilename);
+    public static final Comparator<FileRecord> COMPARE_FILENAMEEXT = Comparator.comparing(FileRecord::getFilenameExt);
+    public static final Comparator<FileRecord> COMPARE_PARENTPATH = Comparator.comparing(FileRecord::getParentpath);
+    public static final Comparator<FileRecord> COMPARE_DIGEST = Comparator.comparing(FileRecord::getDigest);
+    public static final Comparator<FileRecord> COMPARE_FILESTATUS_FILEPATH = Comparator.comparing(FileRecord::getFileStatus).thenComparing(FileRecord::getFilepath);
+    public static final Comparator<FileRecord> COMPARE_DIGEST_FILESIZE = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
+    public static final Comparator<FileRecord> COMPARE_FILEPATH_DIGEST_FILESIZE = Comparator.comparing(FileRecord::getFilepath).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize); 
+    public static final Comparator<FileRecord> COMPARE_FILENAME_DIGEST_FILESIZE = Comparator.comparing(FileRecord::getFilename).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize); 
+
     public final String tag; 
     public final String path;
     public final String parentpath;
@@ -56,10 +68,12 @@ public class FileRecord {
     public final int filesize;
     public FileStatus filestatus;
     public boolean hasMatch;
+    public String hint;
     
     public FileRecord(String serialisedrecord) throws IOException {
         String[] serialisedrecordparts = serialisedrecord.split("§");
-        if ((serialisedrecordparts.length == 4) || (serialisedrecordparts.length == 5) || (serialisedrecordparts.length == 6)) {
+        if ((serialisedrecordparts.length == 4) || (serialisedrecordparts.length == 5)
+                || (serialisedrecordparts.length == 6)|| (serialisedrecordparts.length == 7)) {
             // common for old and new formats
             tag = serialisedrecordparts[0];
             path = serialisedrecordparts[1];
@@ -79,6 +93,7 @@ public class FileRecord {
             // handle this differently for various file versions
             filestatus = serialisedrecordparts.length > 4 ? FileStatus.valueOf(serialisedrecordparts[4]) : FileStatus.NONE;
             hasMatch = serialisedrecordparts.length >5 ? Boolean.parseBoolean(serialisedrecordparts[5]) : false;
+            hint = serialisedrecordparts.length >6 ? serialisedrecordparts[6] : "";
         } else {
             throw new IOException("Badly formatted data source: " + serialisedrecord);
         }
@@ -120,15 +135,20 @@ public class FileRecord {
         return hasMatch;
     }
     
+    public String getHint() {
+        return hint;
+    }
+    
     @Override
     public String toString() {
-        return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize)+"§"+filestatus+"§"+hasMatch;
+        return tag+"§"+path+"§"+digest+"§"+Integer.toString(filesize)+"§"+filestatus+"§"+hasMatch+"§"+hint;
     }
     
     public String toReportString() {
         return path+'\n'+
                 "    hasMatch="+hasMatch+
                 "    status="+filestatus+
+                "    hint="+hint+
                 "    filesize="+filesize+
                 "    tag="+tag+
                 "    digest="+digest;
@@ -141,8 +161,12 @@ public class FileRecord {
     public String toList2String() {
         StringBuilder sb = new StringBuilder();
         appendStringAndPadding(sb, filestatus.toString(), MAXFILESSTATUSSTRINGLENGTH, TABPOINT);
-        appendStringAndPadding(sb, hasMatch?"Has Matches":"UnMatched", 11, 14);
+        appendStringAndPadding(sb, hasMatch ? "Has Matches" : "UnMatched", 11, 14);
         sb.append(path);
+        if (!hint.isBlank()) {
+            sb.append("  HINT:");
+            sb.append(hint);
+        }
         return sb.toString();
     }
     

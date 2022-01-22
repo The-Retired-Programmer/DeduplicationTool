@@ -60,9 +60,11 @@ public class FileRecordFilter {
                 new FilenameextExistsInSetFilter();
             case "filepath-is" ->
                 new FilepathIsFilter();
+            case "filepath-startswith" ->
+                new FilepathStartswithFilter();
             case "filename-is" ->
                 new FilenameIsFilter();
-            case "fileext-is" ->
+            case "fileext-is" -> 
                 new FileExtIsFilter();
             case "filenameext-is" ->
                 new FilenameextIsFilter();

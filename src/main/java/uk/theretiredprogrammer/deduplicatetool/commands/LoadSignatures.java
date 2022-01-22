@@ -32,6 +32,7 @@ public class LoadSignatures extends Command {
         File path = checkSyntaxAndFILEPATH("loadsignatures", "from");
         filecount = 0;
         load(path);
+        model.initExtended();
         System.out.println(Integer.toString(filecount) + " signature files loaded");
         return Command.ActionResult.COMPLETEDCONTINUE;
     }
