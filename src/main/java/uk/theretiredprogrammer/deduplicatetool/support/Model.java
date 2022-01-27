@@ -27,6 +27,7 @@ import java.util.Map;
 import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_DIGEST_FILESIZE;
 import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_FILEPATH;
 import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_PARENTPATH;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_PARENTPATH_FILENAMEEXT;
 
 public class Model extends FileRecords implements StorableSet {
 
@@ -34,7 +35,7 @@ public class Model extends FileRecords implements StorableSet {
     public final Parameters parameters;
     private final List<FileRecords> matchrecords = new ArrayList<>();
     private final Map<String, FileRecords> sets = new HashMap<>();
-    private final Map<String, FileRecords> parentpathfilesets = new LinkedHashMap<>();
+    private final LinkedHashMap<String, FileRecords> parentpathfilesets = new LinkedHashMap<>();
 
     public Model(String modelname, Parameters parameters) {
         this.modelname = modelname;
@@ -56,13 +57,13 @@ public class Model extends FileRecords implements StorableSet {
     public void load(String line) throws IOException {
         add(new FileRecord(line));
     }
-    
+
     public void initExtended() {
         this.sort(COMPARE_FILEPATH);
         updateHasMatch();
         extractFilerecordsByParentpath();
     }
-    
+
     private void updateHasMatch() {
         FileRecords orderedset = new FileRecords(this);
         orderedset.sort(COMPARE_DIGEST_FILESIZE);
@@ -74,8 +75,15 @@ public class Model extends FileRecords implements StorableSet {
                 FileRecord possibleduplicate = iterator.next();
                 possibleduplicate.hasMatch = false;
                 if (COMPARE_DIGEST_FILESIZE.compare(current, possibleduplicate) == 0) {
-                    current.hasMatch = true;
-                    possibleduplicate.hasMatch = true;
+                    if (current.getFileStatus().isUseInMatching()) {
+                        if (possibleduplicate.getFileStatus().isUseInMatching()) {
+                            current.hasMatch = true;
+                            possibleduplicate.hasMatch = true;
+                        }
+                    } else {
+                        current = possibleduplicate;
+                        current.hasMatch = false;
+                    }
                 } else {
                     current = possibleduplicate;
                     current.hasMatch = false;
@@ -83,11 +91,11 @@ public class Model extends FileRecords implements StorableSet {
             }
         }
     }
-    
+
     private void extractFilerecordsByParentpath() {
         parentpathfilesets.clear();
         FileRecords orderedset = new FileRecords(this);
-        orderedset.sort(COMPARE_FILEPATH);
+        orderedset.sort(COMPARE_PARENTPATH_FILENAMEEXT);
         if (!orderedset.isEmpty()) {
             Iterator<FileRecord> iterator = orderedset.iterator();
             FileRecord firstfr = iterator.next();
@@ -108,7 +116,7 @@ public class Model extends FileRecords implements StorableSet {
                 parentpathfilesets.put(firstfr.parentpath, sameparentset);
             }
         }
-        
+
     }
 
     @Override
@@ -137,7 +145,7 @@ public class Model extends FileRecords implements StorableSet {
             throw new IOException("FileRecordSet " + key + " does not exist");
         }
     }
-    
+
     public void putSet(String key, FileRecords value) {
         sets.put(key, value);
     }
@@ -149,12 +157,12 @@ public class Model extends FileRecords implements StorableSet {
     public void clearMatchRecords() {
         matchrecords.clear();
     }
-    
+
     public void addToMatchRecords(FileRecords match) {
         matchrecords.add(match);
     }
-    
-    public Map<String,FileRecords> getParentsFileRecords() {
+
+    public LinkedHashMap<String, FileRecords> getParentsFileRecords() {
         return parentpathfilesets;
     }
 

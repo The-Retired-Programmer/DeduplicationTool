@@ -46,10 +46,6 @@ public class FileRecordFilter {
 
     private FilterItem getFilterItem(String command) throws IOException {
         return switch (command) {
-            case "locked" ->
-                new LockedFilter();
-            case "unlocked" ->
-                new UnLockedFilter();
             case "sort" ->
                 new SortFunction();
             case "parentpath-is" ->

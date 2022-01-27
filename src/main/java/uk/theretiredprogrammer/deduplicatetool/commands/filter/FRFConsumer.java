@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import uk.theretiredprogrammer.deduplicatetool.support.FileManager;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
-import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
@@ -60,18 +59,12 @@ public class FRFConsumer {
         checkCorrect();
         switch (action) {
             case "set" -> {
-                long size = stream.filter((fr) -> {
-                    if (fr.filestatus == FileStatus.NONE) {
-                        fr.filestatus = FileStatus.valueOf(name);
-                        return true;
-                    }
-                    return false;
-                }).count();
+                long size = stream.filter((fr) -> fr.setFileStatus(name)).count();
                 System.out.println("Successfully Updated " + size + " records");
             }
             case "reset" -> {
                 Function<FileRecord, FileRecord> resetStatus = (fr) -> {
-                    fr.filestatus = FileStatus.NONE;
+                    fr.resetFileStatus();
                     return fr;
                 };
                 long size = stream.map(resetStatus).count();
@@ -86,7 +79,7 @@ public class FRFConsumer {
             }
             case "hintappend" -> {
                 long size = stream.filter((fr) -> {
-                    fr.hint = fr.hint +"; "+name;
+                    fr.appendHint(name);
                     return true;
                 }).count();
                 System.out.println("Successfully Updated " + size + " records");

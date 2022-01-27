@@ -26,11 +26,11 @@ import uk.theretiredprogrammer.deduplicatetool.support.SYSIN;
 public class MatchStatusReviewCommandProcessor {
 
     private final Model model;
-    private final MatchReviewCommands commands;
+    private final MatchStatusReviewCommands commands;
 
     public MatchStatusReviewCommandProcessor(Model model) throws IOException {
         this.model = model;
-        commands = new MatchReviewCommands(model);
+        commands = new MatchStatusReviewCommands(model);
     }
 
     public void executeSYSIN() throws IOException {

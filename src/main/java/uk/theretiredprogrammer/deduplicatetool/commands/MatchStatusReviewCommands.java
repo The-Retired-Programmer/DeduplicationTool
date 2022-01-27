@@ -18,12 +18,16 @@ package uk.theretiredprogrammer.deduplicatetool.commands;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.stream.Collectors;
 import uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult;
 import static uk.theretiredprogrammer.deduplicatetool.commands.Command.ActionResult.COMPLETEDQUIT;
-import uk.theretiredprogrammer.deduplicatetool.commands.filter.FileRecordFilter;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecord;
+import static uk.theretiredprogrammer.deduplicatetool.support.FileRecord.COMPARE_DIGEST_FILESIZE;
+import uk.theretiredprogrammer.deduplicatetool.support.FileRecord.FileStatus;
 import uk.theretiredprogrammer.deduplicatetool.support.FileRecords;
 import uk.theretiredprogrammer.deduplicatetool.support.Model;
 
@@ -33,55 +37,83 @@ public class MatchStatusReviewCommands {
 
     public MatchStatusReviewCommands(Model model) throws IOException {
         map.put("q", new Quit());
-        map.put("<<", new First());
-        map.put(">>", new Last());
-        map.put(">", new Next());
-        map.put("<", new Previous());
-        map.put("1", new SelectFileRecord(0));
-        map.put("2", new SelectFileRecord(1));
-        map.put("3", new SelectFileRecord(2));
-        map.put("4", new SelectFileRecord(3));
-        map.put("5", new SelectFileRecord(4));
-        map.put("6", new SelectFileRecord(5));
-        map.put("7", new SelectFileRecord(6));
-        map.put("8", new SelectFileRecord(7));
-        map.put("9", new SelectFileRecord(8));
-        map.put("?", new DisplayMatch());
-        map.put("set", new SetCommand());
-        map.put("filter", new FilterCommand());
+        map.put("|<<<", new First());
+        map.put("|>>>", new Last());
+        map.put("|>", new Next());
+        map.put("|>>", new NextWithNONE());
+        map.put("|<", new Previous());
+        map.put("|<<", new PreviousWithNONE());
+        map.put("<<<", new FirstRecord());
+        map.put(">>>", new LastRecord());
+        map.put(">", new NextRecord());
+        map.put(">>", new NextRecordWithNONE());
+        map.put("<", new PreviousRecord());
+        map.put("<<", new PreviousRecordWithNONE());
+        map.put("?", new DisplayParentFileRecords());
         //
-        matches = model.getMatchRecords();
-        if (matches.isEmpty()) {
-            throw new IOException("No Matches created");
+        map.put("|h", new AddHints());
+        map.put("h", new AddHint());
+        map.put("|h+", new AppendHints());
+        map.put("h+", new AppendHint());
+        //
+        map.put("|s-", new SetUnMatchedNONEs());
+        map.put("|s+", new SetMatchedNONEs());
+        map.put("|s", new SetAllNONEs());
+        map.put("|sa", new SetAll());
+        map.put("s", new Set());
+        map.put("|m", new MatchesDisplay());
+        map.put("m", new MatchDisplay());
+        map.put("|mf+", new MatchesFolderDisplay());
+        map.put("|mf-", new MatchesLimitedFolderDisplay());
+        map.put("|mfe", new MatchesFolderDisplayEditor());
+
+        //
+        parentFileRecordsSet = new LinkedList<>(model.getParentsFileRecords().values());
+        if (parentFileRecordsSet.isEmpty()) {
+            throw new IOException("Empty ParentsFileRecords");
         }
-        sizeFRS = matches.size();
-        first();
+        parentiterator = parentFileRecordsSet.listIterator();
+        currentParentFileRecords = parentiterator.next();
+        completeparentchange();
     }
 
-    private final List<FileRecords> matches;
-    private int indexFRS;
-    private int sizeFRS;
-    private List<FileRecord> currentMatchFileRecords;
-    private int indexFR;
-    private int sizeFR;
-    private FileRecord currentSelectedFileRecord;
+    private final List<FileRecords> parentFileRecordsSet;
+    private final ListIterator<FileRecords> parentiterator;
+    private FileRecords currentParentFileRecords;
+    private ListIterator<FileRecord> filerecorditerator;
+    private FileRecord currentFileRecord;
 
-    private void moveToNewMatchFRS() {
-        currentMatchFileRecords = new ArrayList<>(matches.get(indexFRS));
-        indexFR = 0;
-        sizeFR = currentMatchFileRecords.size();
-        currentSelectedFileRecord = currentMatchFileRecords.get(0);
-        displayMatch();
+    private void completeparentchange() {
+        filerecorditerator = currentParentFileRecords.listIterator();
+        displayCurrentParentFileRecords();
     }
 
-    private void first() {
-        indexFRS = 0;
-        moveToNewMatchFRS();
+    private void displayCurrentParentFileRecords() {
+        System.out.println(currentParentFileRecords.get(0).parentpath);
+        currentParentFileRecords.stream().filter(fr -> (fr.getFileStatus().equals(FileStatus.NONE))).forEachOrdered(fr -> System.out.println(fr.toFilenameListString()));
+        System.out.println(currentParentFileRecords.size() + " files in this folder");
     }
 
-    private void displayMatch() {
-        for (FileRecord fr : currentMatchFileRecords) {
-            System.out.println(fr.toReportString());
+    private void displayAllCurrentParentFileRecords() {
+        System.out.println(currentParentFileRecords.get(0).parentpath);
+        for (FileRecord fr : currentParentFileRecords) {
+            System.out.println(fr.toFilenameListString());
+        }
+    }
+
+    private void displayCurrentFileRecord() {
+        System.out.println(currentFileRecord.toFilenameListString());
+    }
+
+    private class DisplayParentFileRecords extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (filerecorditerator.hasPrevious()) {
+                currentFileRecord = filerecorditerator.previous();
+            }
+            displayAllCurrentParentFileRecords();
+            return ActionResult.COMPLETEDCONTINUE;
         }
     }
 
@@ -94,72 +126,235 @@ public class MatchStatusReviewCommands {
         }
     }
 
-    private class SetCommand extends Command {
+    private boolean containsNONE(FileRecords filerecords) {
+        for (FileRecord fr : filerecords) {
+            if (fr.getFileStatus().equals(FileStatus.NONE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private class AddHints extends Command {
 
         @Override
         public ActionResult execute() throws IOException {
-            checkTokenCount(3);
-            String name = checkSyntaxAndLowercaseNAME("set");
-            String property = checkOptionsSyntax("tag", "filepath", "parentpath", "filename",
-                    "filenameext", "digest", "filesize", "filestatus");
-            String value = null;
-            switch (property) {
-                case "tag" ->
-                    value = currentSelectedFileRecord.tag;
-                case "filepath" ->
-                    value = currentSelectedFileRecord.path;
-                case "parentpath" ->
-                    value = currentSelectedFileRecord.parentpath;
-                case "filename" ->
-                    value = currentSelectedFileRecord.filename;
-                case "filenameext" ->
-                    value = currentSelectedFileRecord.filenameext;
-                case "digest" ->
-                    value = currentSelectedFileRecord.digest;
-                case "filesize" ->
-                    value = Integer.toString(currentSelectedFileRecord.filesize);
-                case "filestatus" ->
-                    value = currentSelectedFileRecord.filestatus.toString();
+            checkTokenCount(2);
+            String hint = checkSyntaxAndNAME("|h");
+            for (FileRecord fr : currentParentFileRecords) {
+                if (fr.getFileStatus().equals(FileStatus.NONE)) {
+                    fr.hint = hint;
+                }
             }
-            model.parameters.set(name, value);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
 
-    // convenient class - to avoid extracting a parameter and then having to enter a filter command to create a FileRecordSet subset
-    private class FilterCommand extends Command {
+    private class AddHint extends Command {
 
         @Override
         public ActionResult execute() throws IOException {
-            checkTokenCount(5);
-            checkSyntax("filter", "using");
-            String property = checkOptionsSyntax("tag", "filepath", "parentpath", "filename",
-                    "filenameext", "digest", "filesize", "filestatus");
-            String name = checkSyntaxAndLowercaseNAME("as");
-            FileRecordFilter filter = new FileRecordFilter();
-            String filterchain = switch (property) {
-                case "tag" ->
-                    "*>>tag-is(" + currentSelectedFileRecord.tag + ")";
-                case "filepath" ->
-                    "*>>filepath-is(" + currentSelectedFileRecord.path + ")";
-                case "parentpath" ->
-                    "*>>parentpath-is(" + currentSelectedFileRecord.parentpath + ")";
-                case "filename" ->
-                    "*>>filename-is(" + currentSelectedFileRecord.filename + ")";
-                case "filenameext" ->
-                    "*>>filenameext-is(" + currentSelectedFileRecord.filenameext + ")";
-                case "digest" ->
-                    "*>>digest-is(" + currentSelectedFileRecord.digest + ")";
-                case "filesize" ->
-                    "*>>filesize-is(" + Integer.toString(currentSelectedFileRecord.filesize) + ")";
-                case "filestatus" ->
-                    "*>>filestatus-is(" + currentSelectedFileRecord.filestatus.toString() + ")";
-                default ->
-                    throw new IOException("unknown option " + property + "in Filter Command (Match Review)");
-            };
-            filter.parse(model, filterchain);
-            filter.setAction("as", name);
-            filter.executeFilter(model);
+            checkTokenCount(2);
+            String hint = checkSyntaxAndNAME("h");
+            currentFileRecord.setHint(hint);
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class AppendHints extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String hint = checkSyntaxAndNAME("|h+");
+            currentParentFileRecords.stream().filter(fr -> (fr.getFileStatus().equals(FileStatus.NONE))).forEachOrdered(fr -> fr.appendHint(hint));
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class AppendHint extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String hint = checkSyntaxAndNAME("h+");
+            currentFileRecord.appendHint(hint);
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class SetUnMatchedNONEs extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String newstatus = checkSyntaxAndNAME("|s-");
+            for (FileRecord fr : currentParentFileRecords) {
+                if (fr.getFileStatus().equals(FileStatus.NONE) && !fr.hasMatch()) {
+                    fr.setFileStatus(newstatus);
+                }
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class SetMatchedNONEs extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String newstatus = checkSyntaxAndNAME("|s+");
+            for (FileRecord fr : currentParentFileRecords) {
+                if (fr.getFileStatus().equals(FileStatus.NONE) && fr.hasMatch()) {
+                    fr.setFileStatus(newstatus);
+                }
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class SetAllNONEs extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String newstatus = checkSyntaxAndNAME("|s");
+            for (FileRecord fr : currentParentFileRecords) {
+                if (fr.getFileStatus().equals(FileStatus.NONE)) {
+                    fr.setFileStatus(newstatus);
+                }
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class SetAll extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String newstatus = checkSyntaxAndNAME("|sa");
+            for (FileRecord fr : currentParentFileRecords) {
+                fr.setFileStatus(newstatus);
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private List<FileRecords> matchingFilesByParentpath;
+    private FileRecords matchedFiles;
+
+    private class MatchesDisplay extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(1);
+            checkSyntax("|m");
+            System.out.println(currentParentFileRecords.get(0).parentpath);
+            FileRecords mrs = new FileRecords();
+            matchedFiles = new FileRecords();
+            for (FileRecord fr : currentParentFileRecords) {
+                if (fr.getFileStatus().equals(FileStatus.NONE) && fr.hasMatch()) {
+                    matchedFiles.add(fr);
+                    System.out.println(fr.toFilenameListString());
+                    for (FileRecord mr : model) {
+                        if (fr != mr && COMPARE_DIGEST_FILESIZE.compare(fr, mr) == 0 && mr.getFileStatus().isUseInMatching()) {
+                            mrs.add(mr);
+                            System.out.println("    " + mr.toList2String());
+                        }
+                    }
+                }
+            }
+            matchingFilesByParentpath = mrs.stream().map(fr -> fr.parentpath).distinct().map(parentpath -> createparentpathlist(parentpath, mrs)).collect(Collectors.toList());
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+
+        private FileRecords createparentpathlist(String parentpath, FileRecords mrs) {
+            return new FileRecords(mrs.stream().filter(fr -> fr.parentpath.equals(parentpath)).collect(Collectors.toList()));
+        }
+    }
+
+    private class MatchesFolderDisplay extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(1);
+            checkSyntax("|mf+");
+            System.out.println(currentParentFileRecords.get(0).parentpath);
+            currentParentFileRecords.forEach(fr -> System.out.println(fr.toFilenameListString()));
+            matchingFilesByParentpath.forEach(mr -> displayFullFolder(mr.get(0).parentpath));
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+
+        private void displayFullFolder(String parentpath) {
+            System.out.println("    " + parentpath);
+            model.stream().filter(mr -> (mr.parentpath.equals(parentpath))).forEachOrdered(mr -> System.out.println("      " + mr.toFilenameListString()));
+        }
+    }
+
+    private class MatchesLimitedFolderDisplay extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(1);
+            checkSyntax("|mf-");
+            System.out.println(currentParentFileRecords.get(0).parentpath);
+            currentParentFileRecords.forEach(fr -> System.out.println(fr.toFilenameListString()));
+            matchingFilesByParentpath.forEach(mr -> displayLimitedFolder(mr));
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+
+        private void displayLimitedFolder(FileRecords files) {
+            System.out.println("    " + files.get(0).parentpath);
+            files.stream().forEachOrdered(mr -> System.out.println("      " + mr.toFilenameListString()));
+        }
+    }
+
+    private class MatchesFolderDisplayEditor extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2 + matchingFilesByParentpath.size());
+            checkSyntax("|mfe");
+            List<FileStatus> newstatus = new ArrayList<>();
+            for (int i = 0; i < matchingFilesByParentpath.size() + 1; i++) {
+                newstatus.add(FileStatus.valueOf(checkSyntaxAndNAME()));
+            }
+            matchedFiles.stream().forEachOrdered((fr) -> fr.setFileStatus(newstatus.get(0)));
+            int index = 1;
+            for (FileRecords frs : matchingFilesByParentpath) {
+                for (FileRecord fr : frs) {
+                    fr.setFileStatus(newstatus.get(index));
+                }
+                index++;
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class MatchDisplay extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(1);
+            checkSyntax("m");
+            System.out.println(currentFileRecord.toList2String());
+            for (FileRecord mr : model) {
+                if (currentFileRecord != mr && COMPARE_DIGEST_FILESIZE.compare(currentFileRecord, mr) == 0) {
+                    System.out.println("    " + mr.toList2String());
+                }
+            }
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class Set extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            checkTokenCount(2);
+            String newstatus = checkSyntaxAndNAME("s");
+            currentFileRecord.setFileStatus(newstatus);
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -168,8 +363,10 @@ public class MatchStatusReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-            indexFRS = 0;
-            moveToNewMatchFRS();
+            while (parentiterator.hasPrevious()) {
+                currentParentFileRecords = parentiterator.previous();
+            }
+            completeparentchange();
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -178,10 +375,25 @@ public class MatchStatusReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-            if (indexFRS > 0) {
-                indexFRS--;
-                moveToNewMatchFRS();
+            if (parentiterator.hasPrevious()) {
+                currentParentFileRecords = parentiterator.previous();
             }
+            completeparentchange();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class PreviousWithNONE extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (parentiterator.hasPrevious()) {
+                currentParentFileRecords = parentiterator.previous();
+                if (containsNONE(currentParentFileRecords)) {
+                    break;
+                }
+            }
+            completeparentchange();
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -190,10 +402,25 @@ public class MatchStatusReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-            if (indexFRS < sizeFRS - 1) {
-                indexFRS++;
-                moveToNewMatchFRS();
+            if (parentiterator.hasNext()) {
+                currentParentFileRecords = parentiterator.next();
             }
+            completeparentchange();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class NextWithNONE extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (parentiterator.hasNext()) {
+                currentParentFileRecords = parentiterator.next();
+                if (containsNONE(currentParentFileRecords)) {
+                    break;
+                }
+            }
+            completeparentchange();
             return ActionResult.COMPLETEDCONTINUE;
         }
     }
@@ -202,37 +429,88 @@ public class MatchStatusReviewCommands {
 
         @Override
         public ActionResult execute() throws IOException {
-            indexFRS = sizeFRS - 1;
-            moveToNewMatchFRS();
-            return ActionResult.COMPLETEDCONTINUE;
-        }
-    }
-
-    private class DisplayMatch extends Command {
-
-        @Override
-        public ActionResult execute() throws IOException {
-            displayMatch();
-            return ActionResult.COMPLETEDCONTINUE;
-        }
-    }
-
-    private class SelectFileRecord extends Command {
-
-        private final int index;
-
-        public SelectFileRecord(int index) {
-            this.index = index;
-        }
-
-        @Override
-        public ActionResult execute() throws IOException {
-            if (index < sizeFR && index >= 0) {
-                indexFR = index;
-                currentSelectedFileRecord = currentMatchFileRecords.get(indexFR);
-                System.out.println(currentSelectedFileRecord.toReportString());
+            while (parentiterator.hasNext()) {
+                currentParentFileRecords = parentiterator.next();
             }
+            completeparentchange();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
 
+    private class FirstRecord extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (filerecorditerator.hasPrevious()) {
+                currentFileRecord = filerecorditerator.previous();
+            }
+            displayCurrentFileRecord();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class PreviousRecord extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            if (filerecorditerator.hasPrevious()) {
+                currentFileRecord = filerecorditerator.previous();
+            }
+            displayCurrentFileRecord();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class PreviousRecordWithNONE extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (filerecorditerator.hasPrevious()) {
+                currentFileRecord = filerecorditerator.previous();
+                if (currentFileRecord.getFileStatus().equals(FileStatus.NONE)) {
+                    break;
+                }
+            }
+            displayCurrentFileRecord();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class NextRecord extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            if (filerecorditerator.hasNext()) {
+                currentFileRecord = filerecorditerator.next();
+            }
+            displayCurrentFileRecord();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class NextRecordWithNONE extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (filerecorditerator.hasNext()) {
+                currentFileRecord = filerecorditerator.next();
+                if (currentFileRecord.getFileStatus().equals(FileStatus.NONE)) {
+                    break;
+                }
+            }
+            displayCurrentFileRecord();
+            return ActionResult.COMPLETEDCONTINUE;
+        }
+    }
+
+    private class LastRecord extends Command {
+
+        @Override
+        public ActionResult execute() throws IOException {
+            while (filerecorditerator.hasNext()) {
+                currentFileRecord = filerecorditerator.next();
+            }
+            displayCurrentFileRecord();
             return ActionResult.COMPLETEDCONTINUE;
         }
     }

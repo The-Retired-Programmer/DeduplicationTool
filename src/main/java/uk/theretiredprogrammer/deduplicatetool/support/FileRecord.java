@@ -25,22 +25,22 @@ public class FileRecord {
     private static final int TABPOINT = MAXFILESSTATUSSTRINGLENGTH + 4;// minimum of 4 spaces tabbing
     
     public static enum FileStatus {
-        NONE(false, true), DUPLICATE_IGNORE(true, false),
-        PHOTOS_MASTER(true, true), PROPOSED_MASTER(true, true),
-        TO_BE_DELETED(true, false), FILE_DELETED(true, false),
-        CHECK_IS_WANTED(false, false), NOT_AN_IMAGE(true, false),
-        FOLLOW_UP_LATER(true, true), KEEP_BUT_MOVE(true, true);
+        NONE(0, true), DUPLICATE_IGNORE(9, false),
+        PHOTOS_MASTER(9, true), PROPOSED_MASTER(5, true),
+        TO_BE_DELETED(5, false), FILE_DELETED(9, false),
+        CHECK_IS_WANTED(3, false), NOT_AN_IMAGE(5, false),
+        FOLLOW_UP_LATER(5, true), KEEP_BUT_MOVE(9, true);
         
-        private final boolean locked;
+        private final int level;
         private final boolean useinmatching;
         
-        private FileStatus(boolean locked, boolean useinmatching) {
-            this.locked = locked;
+        private FileStatus(int level, boolean useinmatching) {
+            this.level = level;
             this.useinmatching = useinmatching;
         }
         
-        public boolean isLocked() {
-            return locked;
+        public int level() {
+            return level;
         }
         
         public boolean isUseInMatching(){
@@ -53,6 +53,7 @@ public class FileRecord {
     public static final Comparator<FileRecord> COMPARE_FILENAMEEXT = Comparator.comparing(FileRecord::getFilenameExt);
     public static final Comparator<FileRecord> COMPARE_PARENTPATH = Comparator.comparing(FileRecord::getParentpath);
     public static final Comparator<FileRecord> COMPARE_DIGEST = Comparator.comparing(FileRecord::getDigest);
+    public static final Comparator<FileRecord> COMPARE_PARENTPATH_FILENAMEEXT = Comparator.comparing(FileRecord::getParentpath).thenComparing(FileRecord::getFilenameExt);
     public static final Comparator<FileRecord> COMPARE_FILESTATUS_FILEPATH = Comparator.comparing(FileRecord::getFileStatus).thenComparing(FileRecord::getFilepath);
     public static final Comparator<FileRecord> COMPARE_DIGEST_FILESIZE = Comparator.comparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize);
     public static final Comparator<FileRecord> COMPARE_FILEPATH_DIGEST_FILESIZE = Comparator.comparing(FileRecord::getFilepath).thenComparing(FileRecord::getDigest).thenComparing(FileRecord::getFilesize); 
@@ -66,7 +67,7 @@ public class FileRecord {
     public final String filenameext;
     public final String digest;
     public final int filesize;
-    public FileStatus filestatus;
+    private FileStatus filestatus;
     public boolean hasMatch;
     public String hint;
     
@@ -131,12 +132,40 @@ public class FileRecord {
         return filestatus;
     }
     
+    public String getFileStatusName() {
+        return filestatus.toString();
+    }
+    
+    public boolean setFileStatus(FileStatus newfilestatus) {
+        if (newfilestatus.level() > filestatus.level()) {
+            filestatus = newfilestatus;
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean setFileStatus(String newfilestatusname) {
+        return setFileStatus(FileStatus.valueOf(newfilestatusname));
+    }
+    
+    public void resetFileStatus() {
+        filestatus = FileStatus.NONE;
+    }
+    
     public boolean hasMatch() {
         return hasMatch;
     }
     
     public String getHint() {
         return hint;
+    }
+    
+    public void setHint(String hint) {
+        this.hint = hint;
+    }
+    
+    public void appendHint(String hint) {
+        this.hint = this.hint+"; "+hint;
     }
     
     @Override
@@ -163,6 +192,18 @@ public class FileRecord {
         appendStringAndPadding(sb, filestatus.toString(), MAXFILESSTATUSSTRINGLENGTH, TABPOINT);
         appendStringAndPadding(sb, hasMatch ? "Has Matches" : "UnMatched", 11, 14);
         sb.append(path);
+        if (!hint.isBlank()) {
+            sb.append("  HINT:");
+            sb.append(hint);
+        }
+        return sb.toString();
+    }
+    
+    public String toFilenameListString() {
+        StringBuilder sb = new StringBuilder();
+        appendStringAndPadding(sb, filestatus.toString(), MAXFILESSTATUSSTRINGLENGTH, TABPOINT);
+        appendStringAndPadding(sb, hasMatch ? "Has Matches" : "UnMatched", 11, 14);
+        sb.append(filenameext);
         if (!hint.isBlank()) {
             sb.append("  HINT:");
             sb.append(hint);

@@ -37,6 +37,6 @@ public class FileStatusIsnotFilter implements FilterItem {
 
     @Override
     public Stream<FileRecord> streamProcess(Stream<FileRecord> fromStream, Model model) {
-        return fromStream.filter((fr) -> !fr.filestatus.toString().equals(parameter));
+        return fromStream.filter((fr) -> !fr.getFileStatusName().equals(parameter));
     }
 }
